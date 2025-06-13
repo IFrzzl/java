@@ -8,7 +8,7 @@ public class Plane {
         int businessSeatsPerRow;
 
         int economyRows;
-        int economySeatsPerRow;
+        int defaultSeatsPerRow;
 
         int[] businessExitRows;
         int[] economyExitRows;
@@ -21,7 +21,7 @@ public class Plane {
             this.businessRows = businessRows;
             this.businessSeatsPerRow = businessSeatsPerRow;
             this.economyRows = economyRows;
-            this.economySeatsPerRow = economySeatsPerRow;
+            this.defaultSeatsPerRow = economySeatsPerRow;
             this.businessExitRows = businessExitRows;
             this.economyExitRows = economyExitRows;
             this.capacity = capacity;
@@ -36,8 +36,8 @@ public class Plane {
                         seatingChart[i][j] = new Seat(i, j, SeatStatus.BUSINESS);
                     }
                 } else {
-                    seatingChart[i] = new Seat[economySeatsPerRow];
-                    for (int j = 0; j < economySeatsPerRow; j++) {
+                    seatingChart[i] = new Seat[defaultSeatsPerRow];
+                    for (int j = 0; j < defaultSeatsPerRow; j++) {
                         seatingChart[i][j] = new Seat(i, j, SeatStatus.ECONOMY);
                     }
                 }
@@ -50,7 +50,7 @@ public class Plane {
                 }
             }
             for (int row : economyExitRows) {
-                for (int j = 0; j < economySeatsPerRow; j++) {
+                for (int j = 0; j < defaultSeatsPerRow; j++) {
                     seatingChart[row][j].setStatus(SeatStatus.ECONOMY_EXIT);
                 }
             }
@@ -58,6 +58,16 @@ public class Plane {
 
         public Seat[][] getSeatingChart() {
             return seatingChart;
+        }
+
+        public int getLength() {
+            return length;
+        }
+        public int getCapacity() {
+            return capacity;
+        }
+        public int getRows() {
+            return defaultSeatsPerRow;
         }
 
 }

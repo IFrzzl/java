@@ -1,23 +1,97 @@
+import java.awt.Color;
+import java.util.ArrayList;
+import java.util.Random;
+
 public class Simulation {
+
     public static void main(String[] args) {
+
         // Create a plane
         Plane plane = new Plane(100, 5, 4, 20, 6, new int[]{0, 1, 2, 3, 4}, new int[]{18, 19}, 100, "A320");
-
         // Create a seating chart
         plane.createSeatingChart();
 
+        SimulationWindow simulationWindow = new SimulationWindow(plane);
+
+        
+        // Refresh the plane view
+        simulationWindow.planeView.setBackground(Color.RED);
+        simulationWindow.refreshPlaneView();
+
         // Generate passenger data
-        Simulation simulation = new Simulation();
-        simulation.generatePassengerData(plane);
+        ArrayList<Passenger> allPassengers = new ArrayList<>();
+        generatePassengerData(plane, allPassengers);
     }
 
-    public void generatePassengerData(Plane plane) {
-        // Generate passenger data based on the plane's seating chart
+public static void generatePassengerData(Plane plane, ArrayList<Passenger> allPassengers) {
+        Random rand = new Random();
+        final double disabled = 0.03;
+        final double families = 0.10;
+        int numberPassengers = plane.getCapacity();
+        for (int i=0;i<numberPassengers;i++){
+            Passenger passenger = new Passenger();
+            if (rand.nextInt(100)<=disabled*100){
+                passenger.setDisabled(true);
+            }
+            allPassengers.add(passenger);
+        }
+
+        //generate families
+        int familyPassengers = (int) (families*numberPassengers);
+        while (familyPassengers>0){
+
+            int familySize = 0;
+            if (familyPassengers > 8){
+                familySize = rand.nextInt(4) + 2;
+            } else {
+                familySize = familyPassengers;
+            }
+
+            Family family = new Family();
+            int i = 0;
+            do {
+                Passenger passenger = allPassengers.get(rand.nextInt(numberPassengers));
+                if (passenger.famlily != null){
+                    family.add(passenger);
+                    i++;
+                }
+            } while (i<familySize);
+            familyPassengers -= familySize;
+        }
+    }
+}
+
+class Group {
+    int groupNumber;
+
+    public Group(int groupNumber) {
+        this.groupNumber = groupNumber;
     }
 
-    // A JFrame GUI shows a seating chart with the plane's seating arrangement
-    public void showSeatingChart(Plane plane) {
+    public int getGroupNumber() {
+        return groupNumber;
+    }
+}
+
+class Family {
+    ArrayList<Passenger> members = new ArrayList<Passenger>();
+
+    public Family() {
         
     }
-    // A method to simulate boarding the plane
+
+    public void add(Passenger passenger) {
+        if (passenger.getFamily() == null) {
+            passenger.setFamily(this);
+            members.add(passenger);
+        }
+    }
+
+    public int size() {
+        return members.size();
+    }
+
+    public ArrayList<Passenger> getMembers() {
+        return members;
+    }
 }
