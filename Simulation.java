@@ -7,7 +7,7 @@ public class Simulation {
     public static void main(String[] args) {
 
         // Create a plane
-        Plane plane = new Plane(100, 5, 4, 20, 6, new int[]{0, 1, 2, 3, 4}, new int[]{18, 19}, 100, "A320");
+        Plane plane = new Plane(30, 5, 25, 6, new int[]{3, 3}, 180, new int[]{5, 15}, "Boeing 737");
         // Create a seating chart
         plane.createSeatingChart();
 
@@ -15,7 +15,7 @@ public class Simulation {
 
         
         // Refresh the plane view
-        simulationWindow.planeView.setBackground(Color.RED);
+        simulationWindow.planeView.setBackground(Color.WHITE);
         simulationWindow.refreshPlaneView();
 
         // Generate passenger data

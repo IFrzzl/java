@@ -7,6 +7,7 @@ public enum SeatStatus {
     ECONOMY_OCCUPIED,
     BUSINESS_EXIT_OCCUPIED,
     ECONOMY_EXIT_OCCUPIED,
-    OTHER
+    OTHER,
+    AISLE
 }
 

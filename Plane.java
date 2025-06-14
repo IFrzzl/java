@@ -2,56 +2,61 @@ public class Plane {
         Seat[][] seatingChart;
 
         int length;
+        int width;
         int capacity;
 
         int businessRows;
-        int businessSeatsPerRow;
-
         int economyRows;
-        int defaultSeatsPerRow;
+        int[] exitRows;
 
-        int[] businessExitRows;
-        int[] economyExitRows;
+        int[] blocks; // widths of each block e.g. [2, 4, 2]
+        int aisles;
 
         String planeType;
 
-    public Plane(int length, int businessRows, int businessSeatsPerRow, int economyRows,
-     int economySeatsPerRow, int[] businessExitRows, int[] economyExitRows, int capacity, String planeType) {
+    public Plane(int length, int businessRows, int economyRows, int seatsPerRow, int[] blocks, int capacity, int[] exitRows, String planeType) {
             this.length = length;
             this.businessRows = businessRows;
-            this.businessSeatsPerRow = businessSeatsPerRow;
             this.economyRows = economyRows;
-            this.defaultSeatsPerRow = economySeatsPerRow;
-            this.businessExitRows = businessExitRows;
-            this.economyExitRows = economyExitRows;
+            this.width = seatsPerRow;
+            this.blocks = blocks;
+            this.exitRows = exitRows;
             this.capacity = capacity;
-    }
+            this.aisles = blocks.length - 1; // Default aisles
+            this.planeType = planeType;
+        }
 
     public void createSeatingChart() {
-               seatingChart = new Seat[length][];
+            seatingChart = new Seat[length][width + aisles];
             for (int i = 0; i < length; i++) {
-                if (i < businessRows) {
-                    seatingChart[i] = new Seat[businessSeatsPerRow];
-                    for (int j = 0; j < businessSeatsPerRow; j++) {
-                        seatingChart[i][j] = new Seat(i, j, SeatStatus.BUSINESS);
+                for (int j = 0; j < width + aisles; j++) {
+                    seatingChart[i][j] = new Seat(i, j, SeatStatus.OTHER);
+                    if (i < businessRows) {
+                        seatingChart[i][j].setStatus(SeatStatus.BUSINESS);
+                    } else {
+                        seatingChart[i][j].setStatus(SeatStatus.ECONOMY);
                     }
-                } else {
-                    seatingChart[i] = new Seat[defaultSeatsPerRow];
-                    for (int j = 0; j < defaultSeatsPerRow; j++) {
-                        seatingChart[i][j] = new Seat(i, j, SeatStatus.ECONOMY);
-                    }
-                }
-            }
 
-            // Set exit rows
-            for (int row : businessExitRows) {
-                for (int j = 0; j < businessSeatsPerRow; j++) {
-                    seatingChart[row][j].setStatus(SeatStatus.BUSINESS_EXIT);
+                    for (int exit: exitRows) {
+                    if (i == exit) {
+                            if (i < businessRows) {
+                                seatingChart[i][j].setStatus(SeatStatus.BUSINESS_EXIT);
+                            } else {
+                                seatingChart[i][j].setStatus(SeatStatus.ECONOMY_EXIT);
+                            }
+                        }
+                    }
                 }
-            }
-            for (int row : economyExitRows) {
-                for (int j = 0; j < defaultSeatsPerRow; j++) {
-                    seatingChart[row][j].setStatus(SeatStatus.ECONOMY_EXIT);
+                
+                for (int j = 1; j <= aisles; j++) {
+                    // need the sum of seats before the aisle
+                    int seatsBeforeAisle = 0;
+                    for (int k = 0; k < j; k++) {
+                        seatsBeforeAisle += blocks[k];
+                    }
+                    seatsBeforeAisle += j-1;
+                    // set the aisle seat
+                    seatingChart[i][seatsBeforeAisle].setStatus(SeatStatus.AISLE);
                 }
             }
         }
@@ -67,7 +72,10 @@ public class Plane {
             return capacity;
         }
         public int getRows() {
-            return defaultSeatsPerRow;
+            return length;
         }
 
+        public int getWidth() {
+            return width + aisles;
+        }
 }
