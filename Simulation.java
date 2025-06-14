@@ -7,9 +7,8 @@ public class Simulation {
     public static void main(String[] args) {
 
         // Create a plane
-        Plane plane = new Plane(30, 5, 25, 6, new int[]{3, 3}, 180, new int[]{5, 15}, "Boeing 737");
+        Plane plane = new Plane(20, 2, 10, 4, new int[]{2, 2}, 180, new int[]{5 ,9, 12, 15}, "Boeing 737");
         // Create a seating chart
-        plane.createSeatingChart();
 
         SimulationWindow simulationWindow = new SimulationWindow(plane);
 

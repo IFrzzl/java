@@ -24,17 +24,19 @@ public class Plane {
             this.capacity = capacity;
             this.aisles = blocks.length - 1; // Default aisles
             this.planeType = planeType;
+            createSeatingChart();
         }
 
     public void createSeatingChart() {
-            seatingChart = new Seat[length][width + aisles];
+            this.seatingChart = new Seat[length][width + aisles];
             for (int i = 0; i < length; i++) {
                 for (int j = 0; j < width + aisles; j++) {
-                    seatingChart[i][j] = new Seat(i, j, SeatStatus.OTHER);
+                    this.seatingChart[i][j] = new Seat(i, j, SeatStatus.OTHER);
                     if (i < businessRows) {
-                        seatingChart[i][j].setStatus(SeatStatus.BUSINESS);
+                        this.seatingChart[i][j].setStatus(SeatStatus.BUSINESS);
+                        // sets the middle seats in the blocks to OTHER
                     } else {
-                        seatingChart[i][j].setStatus(SeatStatus.ECONOMY);
+                        this.seatingChart[i][j].setStatus(SeatStatus.ECONOMY);
                     }
 
                     for (int exit: exitRows) {
@@ -47,18 +49,48 @@ public class Plane {
                         }
                     }
                 }
-                
-                for (int j = 1; j <= aisles; j++) {
+
+                for (int j = 0; j < aisles; j++) {
                     // need the sum of seats before the aisle
                     int seatsBeforeAisle = 0;
-                    for (int k = 0; k < j; k++) {
+                    for (int k = 0; k < j+1; k++) {
                         seatsBeforeAisle += blocks[k];
                     }
-                    seatsBeforeAisle += j-1;
+                    seatsBeforeAisle += j;
                     // set the aisle seat
                     seatingChart[i][seatsBeforeAisle].setStatus(SeatStatus.AISLE);
                 }
+
             }
+
+            for (int i = 0; i < businessRows; i++) {
+                for (int k = 0; k < blocks.length; k++) {
+                    // for each block, find the index middle seats, adding seats from the previous blocks
+                    if (blocks[k] > 2) {
+                        if (blocks[k] % 2 == 0) {
+                            // even number of seats, set the two middle seats to OTHER
+                            // realistically a row won't be wider than 6 seats, so this is fine
+                            int middleSeat1 = seatsBeforeIndex(k, blocks[k] / 2 - 1);
+                            int middleSeat2 = seatsBeforeIndex(k, blocks[k] / 2);
+                            seatingChart[i][middleSeat1].setStatus(SeatStatus.OTHER);
+                            seatingChart[i][middleSeat2].setStatus(SeatStatus.OTHER);
+                        } else {
+                            // odd number of seats, set the middle seat to OTHER
+                            int middleSeat = seatsBeforeIndex(k, blocks[k] / 2);
+                            seatingChart[i][middleSeat].setStatus(SeatStatus.OTHER);
+                        }
+                    }
+                }
+            }
+        }
+
+        public int seatsBeforeIndex(int block, int index) {
+            int seatsBefore = block;
+            for (int i = 0; i < block; i++) {
+                seatsBefore += blocks[i];
+            }
+            seatsBefore += index; 
+            return seatsBefore; 
         }
 
         public Seat[][] getSeatingChart() {
