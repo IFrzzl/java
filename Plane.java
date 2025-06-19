@@ -28,15 +28,17 @@ public class Plane {
         }
 
     public void createSeatingChart() {
-            this.seatingChart = new Seat[length][width + aisles];
+            seatingChart = new Seat[length][width + aisles];
             for (int i = 0; i < length; i++) {
                 for (int j = 0; j < width + aisles; j++) {
-                    this.seatingChart[i][j] = new Seat(i, j, SeatStatus.OTHER);
+                    seatingChart[i][j] = new Seat(i, j, SeatStatus.OTHER);
+                    seatingChart[i][j].setRow(i);
+                    seatingChart[i][j].setSeat(j);
                     if (i < businessRows) {
-                        this.seatingChart[i][j].setStatus(SeatStatus.BUSINESS);
+                        seatingChart[i][j].setStatus(SeatStatus.BUSINESS);
                         // sets the middle seats in the blocks to OTHER
                     } else {
-                        this.seatingChart[i][j].setStatus(SeatStatus.ECONOMY);
+                        seatingChart[i][j].setStatus(SeatStatus.ECONOMY);
                     }
 
                     for (int exit: exitRows) {

@@ -1,16 +1,17 @@
 import java.awt.Color;
+import java.lang.reflect.Array;
 import java.util.*;
 
 public class Simulation {
 
     public static void main(String[] args) {
 
-        Plane plane = new Plane(20, 2, 10, 4, new int[]{2, 2}, 80, new int[]{5 ,9, 12, 15}, "Boeing 737");
-        final int MAX_GROUPS = 6;
- /*        SimulationWindow simulationWindow = new SimulationWindow(plane);
+        Plane plane = new Plane(100, 4, 16, 4, new int[]{2, 2}, 400, new int[]{5 ,9, 12, 15}, "Boeing 737");
+        final int MAX_GROUPS = 2;
+         SimulationWindow simulationWindow = new SimulationWindow(plane);
 
         simulationWindow.planeView.setBackground(Color.WHITE);
-        simulationWindow.refreshPlaneView(); */
+        simulationWindow.refreshPlaneView(); 
 
         ArrayList<Passenger> allPassengers = new ArrayList<>();
         generatePassengerData(plane, allPassengers);
@@ -48,6 +49,7 @@ public class Simulation {
             passenger.setStowingSpeed(bags * (rand.nextGaussian() * 2.0 * 1/factor + constants.DEFAULT_STOWING_SPEED));
             passenger.setSittingSpeed(rand.nextGaussian() * 2.0 * 1/factor + constants.DEFAULT_SITTING_SPEED);
             passenger.setBags(bags);
+            passenger.id = i;
             allPassengers.add(passenger);
         }
 
@@ -64,12 +66,18 @@ public class Simulation {
 
             ArrayList<Passenger> family = new ArrayList<>();
             int index = rand.nextInt(0, numberPassengers);
-            for (int i = index; i <= index + familySize; i++){
-                if (i >= numberPassengers || allPassengers.get(i).getFamily() != null) {continue;}
+            for (int i = index; i < index + familySize && i < numberPassengers; i++) { // fancy double conditional
+                if (allPassengers.get(i).getFamily() != null) continue;
                 family.add(allPassengers.get(i));
-                allPassengers.get(i).setFamily(family);
             }
-            familyPassengers -= familySize;
+            if (family.size() == familySize) {
+                for (Passenger relative : family) {
+                    ArrayList<Passenger> familyCopy = new ArrayList<>(family);
+                    familyCopy.remove(relative); // no circular references = no commodification errors
+                    relative.setFamily(familyCopy);
+                }
+                familyPassengers -= familySize;
+            }
         }
 
         // assign seats
@@ -95,7 +103,7 @@ public class Simulation {
         Random rand = new Random();
         int[] groups = new int[allPassengers.size()];
         for (Passenger passenger: allPassengers){
-            passenger.setGroupNum(rand.nextInt(1, numberGroups + 1));
+            passenger.setGroupNum(rand.nextInt(numberGroups));
         }
         // check families and make array
         int i = 0;
@@ -117,7 +125,6 @@ public class Simulation {
         // make a priority queue for boarding events
         // custom comparator using lamba to sort by start time
         PriorityQueue<Event> eventsQueue = new PriorityQueue<>((e1, e2) -> Double.compare(e1.getTime(), e2.getTime()));
-        eventsQueue.add(new Event(EventTypes.WALK, 0, allPassengers.get(0), 0)); // first passenger starts walking at time 0
 
         for (int i = 0; i < allPassengers.size(); i++) {
             Passenger passenger = allPassengers.get(i);
@@ -168,37 +175,44 @@ public class Simulation {
             }
         }
 
+        eventsQueue.add(new Event(EventTypes.WALK, 0, boardingQueue.poll(), 0)); // first passenger starts walking at time 0
+
         while (!eventsQueue.isEmpty()) {
             Event currentEvent = eventsQueue.poll();
             Passenger passenger = currentEvent.getPassenger();
             double time = currentEvent.getTime();
             int position = currentEvent.getPosition();
+            passenger.queuePosition = position;
+            System.out.println(passenger.id);
             switch (currentEvent.getType()) {
                 case EventTypes.SITTING:
                     time += passenger.getSittingSpeed();
                     aisle.remove(position);
                     passenger.getSeat().setStatus(SeatStatus.OCCUPIED);
-                    // so this is the only time that the queue can shift, so we should also consi
+                    break;
                 case EventTypes.WALK:
-                    System.out.println("Passenger " + passenger.getGroupNum() + " at position " + position + " at time " + time);
                     if (position >= passenger.getSeat().getRow()) {
                         eventsQueue.add(new Event(EventTypes.SITTING, time + passenger.getStowingSpeed(), passenger, position));
                     } else if (aisle.freeSpace(position)) {
-                        aisle.shift(position + 1);
-                        System.out.println(aisle);
+                        aisle.advance(position);
                         eventsQueue.add(new Event(EventTypes.WALK, time + passenger.getWalkingSpeed(), passenger, position + 1));
                     } else {
                         eventsQueue.add(new Event(EventTypes.WALK, time + 2, passenger, position)); // wait two ticks and try again
                     }
+                    break;
             }
-
             // always trying to cram another passenger on
             if (!boardingQueue.isEmpty()) {
                 if (aisle.push(boardingQueue.peek()) != -1){
-                    Event boardingEvent = new Event(EventTypes.WALK, ticksElapsed + 1, boardingQueue.poll(), 0);
+                    int queuePosition = 0;
+                    if (boardingQueue.peek().getBags()>1) {
+                        queuePosition = 1;
+                    }
+                    Event boardingEvent = new Event(EventTypes.WALK, time + 1, boardingQueue.poll(), queuePosition);
                     eventsQueue.add(boardingEvent);
                 }
-            }
+                }
+            
 
             if (time>ticksElapsed) {ticksElapsed = time;}
         }

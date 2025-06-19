@@ -9,8 +9,10 @@ class Passenger {
     double sittingSpeed;
     Seat seat;
     int bags;
-    
+   public int id = 69;
+
     int groupNum;
+    public int queuePosition = -1; // -1 means not in queue
 
     public Passenger() {
 
