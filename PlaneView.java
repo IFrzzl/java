@@ -28,7 +28,8 @@ class PlaneView extends JPanel {
 
         createSeatButtons(buttonSize);
 
-        JPanel gridWrapper = new JPanel(new GridBagLayout()); // Centers the seat grid inside the PlaneView panel
+        JPanel gridWrapper = new JPanel(new GridBagLayout());
+        buttonGrid.setBackground(new Color(17, 0, 102)); // Centers the seat grid inside the PlaneView panel
         gridWrapper.add(buttonGrid);
 
         setLayout(new BorderLayout());

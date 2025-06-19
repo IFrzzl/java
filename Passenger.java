@@ -1,20 +1,26 @@
 class Passenger {
 
     //attributes
-    Family famlily;
-    Boolean disabled;
+    Family family;
+    double walkingSpeed;
+    double stowingSpeed;
+    double sittingSpeed;
     Seat seat;
     
-    Group groupNum;
+    int groupNum;
 
     public Passenger() {
 
     }
-    public void setDisabled(Boolean disabled) {
-        this.disabled = disabled;
+
+    public void setWalkingSpeed(double walkingSpeed) {
+        this.walkingSpeed = walkingSpeed;
     }
-    public Boolean getDisabled() {
-        return disabled;
+    public void setStowingSpeed(double stowingSpeed) {
+        this.stowingSpeed = stowingSpeed;
+    }
+    public void setSittingSpeed(double sittingSpeed) {
+        this.sittingSpeed = sittingSpeed;
     }
     public void setSeat(Seat seat) {
         this.seat = seat;
@@ -23,15 +29,15 @@ class Passenger {
         return seat;
     }
     public void setFamily(Family family) {
-        this.famlily = family;
+        this.family = family;
     }
     public Family getFamily() {
-        return famlily;
+        return family;
     }
-    public void setGroupNum(Group groupNum) {
+    public void setGroupNum(int groupNum) {
         this.groupNum = groupNum;
     }
-    public Group getGroupNum() {
+    public int getGroupNum() {
         return groupNum;
     }
 

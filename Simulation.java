@@ -1,6 +1,8 @@
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.PriorityQueue;
+import java.util.Collections;
 
 public class Simulation {
 
@@ -24,14 +26,32 @@ public class Simulation {
 
 public static void generatePassengerData(Plane plane, ArrayList<Passenger> allPassengers) {
         Random rand = new Random();
+
+        // we're making a set of variables to control walking, stowing, and sitting speeds
+        // these are the probabilities of a passenger being/having
         final double disabled = 0.03;
-        final double families = 0.10;
+        final double families = 0.20;
+        final double old = 0.10;
+        final double children = 0.10;
+        final double bags = 0.80;
+;
         int numberPassengers = plane.getCapacity();
         for (int i=0;i<numberPassengers;i++){
             Passenger passenger = new Passenger();
-            if (rand.nextInt(100)<=disabled*100){
-                passenger.setDisabled(true);
+            int j = rand.nextInt(100);
+            double factor = 1.0;
+            if (j<=disabled*100){
+                factor *= 0.4;
             }
+            if (j<=old*100|| j<=children*100) {
+                factor *= 0.8;
+            }
+            if (j<=bags*100) {
+                factor *= 1 - (0.2 * rand.nextInt(0, 2));
+            }
+            passenger.setWalkingSpeed(rand.nextGaussian() * 2.0 * 1/factor + 2.0);
+            passenger.setStowingSpeed(bags * (rand.nextGaussian() * 2.0 * 1/factor + 5.0));
+            passenger.setSittingSpeed(rand.nextGaussian() * 2.0 * 1/factor + 4.0);
             allPassengers.add(passenger);
         }
 
@@ -50,7 +70,7 @@ public static void generatePassengerData(Plane plane, ArrayList<Passenger> allPa
             int i = 0;
             do {
                 Passenger passenger = allPassengers.get(rand.nextInt(numberPassengers));
-                if (passenger.famlily != null){
+                if (passenger.family != null){
                     family.add(passenger);
                     i++;
                 }
@@ -60,6 +80,38 @@ public static void generatePassengerData(Plane plane, ArrayList<Passenger> allPa
     }
 }
 
+public static void simulateBoardingTime(ArrayList<Passenger> allPassengers, Plane plane, int[] boardingInts, int groupsNumber) {
+    // make a priority queue for boarding events
+    // custom comparator using lamba to sort by start time
+    PriorityQueue<Event> boardingEvents = new PriorityQueue<>((e1, e2) -> Integer.compare(e1.getTime(), e2.getTime()));
+    for (int i = 0; i < allPassengers.size(); i++) {
+        Passenger passenger = allPassengers.get(i);
+        int boardingGroup = boardingInts[boardingGroup];
+        passenger.setGroupNum(groupsNumber);
+/*         int boardingTime = 
+        Event boardingEvent = new Event(EventTypes.ENTERPLANE, boardingTime, passenger);
+        boardingEvents.add(boardingEvent); */
+    }
+    // put passengers into a queue based on boarding group
+    // families members are next to each other in the queue
+    Passenger[][] boardingGroups = new Passenger[groupsNumber][];
+    for (int i = 0; i < groupsNumber; i++) {
+        int numberPassengers = 0;
+        for (Passenger passenger : allPassengers) {
+            if (passenger.getGroupNum() == i) {
+                numberPassengers++;
+            }
+        }
+        boardingGroups[i] = new Passenger[numberPassengers];
+        int index = 0;
+        for (Passenger passenger : allPassengers) {
+            if (passenger.getGroupNum() == i) {
+                boardingGroups[i][index++] = passenger;
+            }
+        }
+    }
+
+}
 class Group {
     int groupNumber;
 
