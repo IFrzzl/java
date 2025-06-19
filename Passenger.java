@@ -8,6 +8,7 @@ class Passenger {
     double stowingSpeed;
     double sittingSpeed;
     Seat seat;
+    int bags;
     
     int groupNum;
 
@@ -24,6 +25,15 @@ class Passenger {
     public void setSittingSpeed(double sittingSpeed) {
         this.sittingSpeed = sittingSpeed;
     }
+    public double getWalkingSpeed() {
+        return walkingSpeed;
+    }
+    public double getStowingSpeed() {
+        return stowingSpeed;
+    }
+    public double getSittingSpeed() {
+        return sittingSpeed;
+    }
     public void setSeat(Seat seat) {
         this.seat = seat;
     }
@@ -31,6 +41,7 @@ class Passenger {
         return seat;
     }
     public void setFamily(ArrayList<Passenger> family) {
+        family.remove(this); // i have a feeling i might cause recursion problems lol
         this.family = family;
     }
     public ArrayList<Passenger> getFamily() {
@@ -42,5 +53,10 @@ class Passenger {
     public int getGroupNum() {
         return groupNum;
     }
-
+    public int getBags() {
+        return bags;
+    }
+    public void setBags(int bags) {
+        this.bags = bags;
+    }
 }

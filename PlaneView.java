@@ -18,8 +18,8 @@ class PlaneView extends JPanel {
         this.cols = plane.getWidth();
         this.seatingChart = plane.getSeatingChart();
 
-        final int buttonSize = 20; // compared to using a grid layout, this loses flexibility but is easier to manage
-        final int gap = 5;
+        final int buttonSize = constants.BUTTON_SIZE;
+        final int gap = constants.BUTTON_GAP;
         buttonGrid = new JPanel(new GridLayout(rows, cols, gap, gap));
         buttonGrid.setPreferredSize(new Dimension(
             cols * buttonSize + (cols - 1) * gap,
@@ -93,7 +93,6 @@ class PlaneView extends JPanel {
                         break;
                     case AISLE:
                         seatButton.setBackground(new Color(217, 211, 205));
-                        System.out.println(seatButton.getHeight());
                         seatButton.setBorder(new RoundedBorder(40 ));
                         break;
                     default:

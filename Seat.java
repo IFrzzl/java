@@ -32,7 +32,17 @@ public class Seat {
     public SeatStatus getStatus() {
         return status;
     }
-    public void setStatus(SeatStatus status) {
-        this.status = status;
+    public void setStatus(SeatStatus newStatus) {
+        if (newStatus == SeatStatus.OCCUPIED) {
+            switch (status) {
+                case SeatStatus.ECONOMY: status = SeatStatus.ECONOMY_OCCUPIED;
+                case SeatStatus.ECONOMY_EXIT: status = SeatStatus.ECONOMY_EXIT_OCCUPIED;
+                case SeatStatus.BUSINESS: status = SeatStatus.BUSINESS_OCCUPIED;
+                case SeatStatus.BUSINESS_EXIT: status = SeatStatus.BUSINESS_EXIT_OCCUPIED;
+                default: status = SeatStatus.OTHER;
+            }
+        } else {
+            status = newStatus;
+        }
     }
 }
