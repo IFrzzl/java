@@ -2,7 +2,6 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.PriorityQueue;
-import java.util.Collections;
 
 public class Simulation {
 
@@ -24,7 +23,7 @@ public class Simulation {
         generatePassengerData(plane, allPassengers);
     }
 
-public static void generatePassengerData(Plane plane, ArrayList<Passenger> allPassengers) {
+    public static void generatePassengerData(Plane plane, ArrayList<Passenger> allPassengers) {
         Random rand = new Random();
 
         // we're making a set of variables to control walking, stowing, and sitting speeds
@@ -66,11 +65,12 @@ public static void generatePassengerData(Plane plane, ArrayList<Passenger> allPa
                 familySize = familyPassengers;
             }
 
-            Family family = new Family();
+            ArrayList<Passenger> family = new ArrayList<>();
             int i = 0;
             do {
                 Passenger passenger = allPassengers.get(rand.nextInt(numberPassengers));
-                if (passenger.family != null){
+                if (passenger.getFamily() == null){
+                    passenger.setFamily(family);
                     family.add(passenger);
                     i++;
                 }
@@ -78,71 +78,58 @@ public static void generatePassengerData(Plane plane, ArrayList<Passenger> allPa
             familyPassengers -= familySize;
         }
     }
-}
 
-public static void simulateBoardingTime(ArrayList<Passenger> allPassengers, Plane plane, int[] boardingInts, int groupsNumber) {
-    // make a priority queue for boarding events
-    // custom comparator using lamba to sort by start time
-    PriorityQueue<Event> boardingEvents = new PriorityQueue<>((e1, e2) -> Integer.compare(e1.getTime(), e2.getTime()));
-    for (int i = 0; i < allPassengers.size(); i++) {
-        Passenger passenger = allPassengers.get(i);
-        int boardingGroup = boardingInts[boardingGroup];
-        passenger.setGroupNum(groupsNumber);
-/*         int boardingTime = 
-        Event boardingEvent = new Event(EventTypes.ENTERPLANE, boardingTime, passenger);
-        boardingEvents.add(boardingEvent); */
-    }
-    // put passengers into a queue based on boarding group
-    // families members are next to each other in the queue
-    Passenger[][] boardingGroups = new Passenger[groupsNumber][];
-    for (int i = 0; i < groupsNumber; i++) {
-        int numberPassengers = 0;
-        for (Passenger passenger : allPassengers) {
-            if (passenger.getGroupNum() == i) {
-                numberPassengers++;
+    public static int simulateBoardingTime(ArrayList<Passenger> allPassengers, Plane plane, int[] boardingInts, int groupsNumber) {
+        // make a priority queue for boarding events
+        // custom comparator using lamba to sort by start time
+        PriorityQueue<Event> eventsQueue = new PriorityQueue<>((e1, e2) -> Integer.compare(e1.getTime(), e2.getTime()));
+        for (int i = 0; i < allPassengers.size(); i++) {
+            Passenger passenger = allPassengers.get(i);
+            int boardingGroup = boardingInts[i];
+            passenger.setGroupNum(boardingGroup);
+        }
+
+        // arrays of passengers by boarding group
+        Passenger[][] boardingGroups = new Passenger[groupsNumber][];
+        for (int i = 0; i < groupsNumber; i++) {
+            int numberPassengers = 0;
+            for (Passenger passenger : allPassengers) {
+                if (passenger.getGroupNum() == i) {
+                    numberPassengers++;
+                }
+            }
+
+            boardingGroups[i] = new Passenger[numberPassengers];
+            int index = 0;
+            for (Passenger passenger : allPassengers) {
+                if (passenger.getGroupNum() == i) {
+                    boardingGroups[i][index] = passenger;
+                    index++;
+                }
             }
         }
-        boardingGroups[i] = new Passenger[numberPassengers];
-        int index = 0;
-        for (Passenger passenger : allPassengers) {
-            if (passenger.getGroupNum() == i) {
-                boardingGroups[i][index++] = passenger;
+
+        // check if families are split up
+        for (Passenger passenger:allPassengers){
+            if (passenger.getFamily() != null) {
+                for (Passenger relative: passenger.getFamily()){
+                    if (relative.getGroupNum() != passenger.getGroupNum()) {
+                        return 999999;
+                    }
+                }
             }
         }
-    }
 
-}
-class Group {
-    int groupNumber;
-
-    public Group(int groupNumber) {
-        this.groupNumber = groupNumber;
-    }
-
-    public int getGroupNumber() {
-        return groupNumber;
-    }
-}
-
-class Family {
-    ArrayList<Passenger> members = new ArrayList<Passenger>();
-
-    public Family() {
-        
-    }
-
-    public void add(Passenger passenger) {
-        if (passenger.getFamily() == null) {
-            passenger.setFamily(this);
-            members.add(passenger);
+        // make enterPlane events
+        for (int i = 0; i<groupsNumber; i++){
+            for (int j = 0; j < boardingGroups[i].length; j++){
+                int boardingTime = i * 600 + j * 5; // two constants here - time per group, time per passenger.
+                Event boardingEvent = new Event(EventTypes.ENTERPLANE, boardingTime, boardingGroups[i][j]);
+                eventsQueue.add(boardingEvent);
+            }
         }
-    }
 
-    public int size() {
-        return members.size();
-    }
-
-    public ArrayList<Passenger> getMembers() {
-        return members;
+        // default return
+        return 0;
     }
 }

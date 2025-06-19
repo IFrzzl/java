@@ -1,7 +1,9 @@
+import java.util.ArrayList;
+
 class Passenger {
 
     //attributes
-    Family family;
+    ArrayList<Passenger> family;
     double walkingSpeed;
     double stowingSpeed;
     double sittingSpeed;
@@ -28,10 +30,10 @@ class Passenger {
     public Seat getSeat() {
         return seat;
     }
-    public void setFamily(Family family) {
+    public void setFamily(ArrayList<Passenger> family) {
         this.family = family;
     }
-    public Family getFamily() {
+    public ArrayList<Passenger> getFamily() {
         return family;
     }
     public void setGroupNum(int groupNum) {
