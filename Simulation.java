@@ -1,105 +1,13 @@
 import java.awt.Color;
-import java.lang.reflect.Array;
 import java.util.*;
 
 public class Simulation {
-
-    public static void main(String[] args) {
-
-        Plane plane = new Plane(100, 4, 16, 4, new int[]{2, 2}, 400, new int[]{5 ,9, 12, 15}, "Boeing 737");
-        final int MAX_GROUPS = 2;
-         SimulationWindow simulationWindow = new SimulationWindow(plane);
-
-        simulationWindow.planeView.setBackground(Color.WHITE);
-        simulationWindow.refreshPlaneView(); 
-
-        ArrayList<Passenger> allPassengers = new ArrayList<>();
-        generatePassengerData(plane, allPassengers);
-        int[] initialGroups = generateInitialGroups(allPassengers, MAX_GROUPS);
-        int duration = simulateBoardingTime(allPassengers, plane, initialGroups, MAX_GROUPS);
-        System.out.println(duration);
+    int duration = 0;
+    int[] initialGroups;
+    public Simulation() {
     }
 
-    public static void generatePassengerData(Plane plane, ArrayList<Passenger> allPassengers) {
-        Random rand = new Random();
-
-        // we're making a set of variables to control walking, stowing, and sitting speeds
-        // these are the probabilities of a passenger being/having
-
-        final double families = 0.20;
-        int numberPassengers = plane.getCapacity();
-
-        for (int i=0;i<numberPassengers;i++){
-            Passenger passenger = new Passenger();
-            int bags = 0;
-            double factor = 1.0;
-            if (rand.nextInt(100)<=constants.PROBABILITY_DISABLED*100){
-                factor *= 0.4;
-            }
-            if (rand.nextInt(100)<=constants.PROBABILITY_OLD*100|| rand.nextInt(100)<=constants.PROBABILITY_CHILDREN*100) {
-                factor *= 0.8;
-            }
-            if (rand.nextInt(100)<=constants.PROBABILITY_BAGS*100) {
-                factor *= 1 - (0.2 * rand.nextInt(0, 2));
-            }
-            if (rand.nextInt(100)<=constants.PROBABILITY_BAGS*100) {
-                bags = rand.nextInt(0, constants.MAX_BAGS + 1);
-            }
-            passenger.setWalkingSpeed(rand.nextGaussian() * 2.0 * 1/factor + constants.DEFAULT_WALKING_SPEED); // 2 is the standard deviation
-            passenger.setStowingSpeed(bags * (rand.nextGaussian() * 2.0 * 1/factor + constants.DEFAULT_STOWING_SPEED));
-            passenger.setSittingSpeed(rand.nextGaussian() * 2.0 * 1/factor + constants.DEFAULT_SITTING_SPEED);
-            passenger.setBags(bags);
-            passenger.id = i;
-            allPassengers.add(passenger);
-        }
-
-        //generate families
-        int familyPassengers = (int) (families*numberPassengers);
-        while (familyPassengers>0){
-
-            int familySize = 0;
-            if (familyPassengers > 8){
-                familySize = rand.nextInt(4) + 2;
-            } else {
-                familySize = familyPassengers;
-            }
-
-            ArrayList<Passenger> family = new ArrayList<>();
-            int index = rand.nextInt(0, numberPassengers);
-            for (int i = index; i < index + familySize && i < numberPassengers; i++) { // fancy double conditional
-                if (allPassengers.get(i).getFamily() != null) continue;
-                family.add(allPassengers.get(i));
-            }
-            if (family.size() == familySize) {
-                for (Passenger relative : family) {
-                    ArrayList<Passenger> familyCopy = new ArrayList<>(family);
-                    familyCopy.remove(relative); // no circular references = no commodification errors
-                    relative.setFamily(familyCopy);
-                }
-                familyPassengers -= familySize;
-            }
-        }
-
-        // assign seats
-        Seat[][] seatingChart = plane.getSeatingChart();
-        int rows = plane.getRows();
-        int cols = plane.getWidth();
-        int p = 0; // this requires the plane capacity to be correct
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                if (seatingChart[i][j] == null || seatingChart[i][j].getStatus() == SeatStatus.OTHER) {continue;}
-                Passenger passenger = new Passenger();
-                if (p < allPassengers.size()) {passenger = allPassengers.get(p);}
-                if (passenger.getSeat() == null) {
-                    passenger.setSeat(seatingChart[i][j]);
-                    seatingChart[i][j].setStatus(SeatStatus.OCCUPIED);
-                    passenger.setSeat(seatingChart[i][j]);
-                    p++;
-                }
-            }
-        }
-    }
-    public static int[] generateInitialGroups(ArrayList<Passenger> allPassengers, int numberGroups){
+    public int[] generateInitialGroups(ArrayList<Passenger> allPassengers, int numberGroups){
         Random rand = new Random();
         int[] groups = new int[allPassengers.size()];
         for (Passenger passenger: allPassengers){
@@ -116,9 +24,11 @@ public class Simulation {
             groups[i] = passenger.getGroupNum();
             i++;
         }
-        return groups;
+
+        initialGroups = groups;
+        return initialGroups;
     }
-    public static int simulateBoardingTime(ArrayList<Passenger> allPassengers, Plane plane, int[] boardingInts, int numberGroups) {
+    public int simulateBoardingTime(ArrayList<Passenger> allPassengers, Plane plane, int[] boardingInts, int numberGroups) {
         
         double ticksElapsed = 0;
         System.out.println("Starting boarding simulation...");
@@ -183,7 +93,6 @@ public class Simulation {
             double time = currentEvent.getTime();
             int position = currentEvent.getPosition();
             passenger.queuePosition = position;
-            System.out.println(passenger.id);
             switch (currentEvent.getType()) {
                 case EventTypes.SITTING:
                     time += passenger.getSittingSpeed();
@@ -218,6 +127,11 @@ public class Simulation {
         }
 
         // default return
-        return (int) ticksElapsed;
+        duration = (int) ticksElapsed;
+        return duration;
+    }
+
+    public int getDuration(){
+        return duration;
     }
 }

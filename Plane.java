@@ -14,17 +14,17 @@ public class Plane {
 
         String planeType;
 
-    public Plane(int length, int businessRows, int economyRows, int seatsPerRow, int[] blocks, int capacity, int[] exitRows, String planeType) {
+    public Plane(int length, int businessRows, int economyRows, int seatsPerRow, int[] blocks, int[] exitRows, String planeType) {
             this.length = length;
             this.businessRows = businessRows;
             this.economyRows = economyRows;
             this.width = seatsPerRow;
             this.blocks = blocks;
             this.exitRows = exitRows;
-            this.capacity = capacity;
             this.aisles = blocks.length - 1; // Default aisles
             this.planeType = planeType;
             createSeatingChart();
+            this.capacity = getCapacity();
         }
 
     public void createSeatingChart() {
@@ -103,7 +103,16 @@ public class Plane {
             return length;
         }
         public int getCapacity() {
-            return capacity;
+            int res = 0;
+            for (int i = 0; i<seatingChart.length; i++){
+                for (int j = 0; j<seatingChart[i].length; j++){
+                    if (seatingChart[i][j].getStatus() == SeatStatus.AISLE || seatingChart[i][j].getStatus() == SeatStatus.OTHER){
+                        continue;
+                    }
+                    res++;
+                }
+            }
+            return res;
         }
         public int getRows() {
             return length;

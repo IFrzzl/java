@@ -1,6 +1,7 @@
 public class constants {
     public static final int GROUP_STAGGER = 600;
-    public static final int PASSENGER_STAGGER = 3;
+    public static final int PASSENGER_STAGGER = 
+    3;
     public static final int DEFAULT_WALKING_SPEED = 2;
     public static final int DEFAULT_STOWING_SPEED = 12;
     public static final int DEFAULT_SITTING_SPEED = 6;
