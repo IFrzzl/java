@@ -7,10 +7,10 @@ public class main {
 
         Plane plane = new Plane(32, 8, 24, 10, new int[]{3, 4, 3}, new int[]{5 ,9, 12, 15}, "Boeing 737");
         final int MAX_GROUPS = 2;
-        final int NUMBER_SIMULATIONS = 100;
-         SimulationWindow simulationWindow = new SimulationWindow(plane);
+        final int NUMBER_SIMULATIONS = 1000;
+        SimulationWindow simulationWindow = new SimulationWindow(plane);
 
-       simulationWindow.planeView.setBackground(Color.WHITE); 
+        simulationWindow.planeView.setBackground(Color.WHITE); 
         simulationWindow.refreshPlaneView();
         ArrayList<Passenger> allPassengers = new ArrayList<>();
         generatePassengerData(plane, allPassengers);
