@@ -12,7 +12,7 @@ public class constants {
 
     // constants for passenger generation probabilities
     public static final double PROBABILITY_DISABLED = 0.03;
-    public static final double PROBABILITY_FAMILIES = 0.20;
+    public static final double PROBABILITY_FAMILIES = 0.00;
     public static final double PROBABILITY_OLD = 0.10;
     public static final double PROBABILITY_CHILDREN = 0.10;
     public static final double PROBABILITY_BAGS = 0.80;

@@ -1,15 +1,42 @@
-import java.awt.Color;
 import java.util.*;
 
 public class Simulation {
     int duration = 0;
-    int[] initialGroups;
-    public Simulation() {
+    int[] boardingInts;
+    int length = 0;
+    Passenger[]allPassengers;
+    Plane plane;
+    int numberGroups;
+    public Simulation(Passenger[]allPassengers, Plane plane, int numberGroups) {
+        this.allPassengers = allPassengers;
+        this.plane = plane;
+        this.numberGroups = numberGroups;
     }
 
-    public int[] generateInitialGroups(ArrayList<Passenger> allPassengers, int numberGroups){
+    public int[] getBoardingInts() {
+        return boardingInts;
+    }
+    public int getLength() {
+        return length;
+    }
+    public int getNumberGroups() {
+        return numberGroups;
+    }
+    public Passenger[]getPassengers(){
+        return allPassengers;
+    }
+    public Plane getPlane(){
+        return plane;
+    }
+    public void setBoardingInts(int[] bi){
+        boardingInts = bi;
+    }
+
+    public int[] generateInitialGroups(){
         Random rand = new Random();
-        int[] groups = new int[allPassengers.size()];
+        int[] groups = new int[allPassengers.length];
+        length = allPassengers.length;
+
         for (Passenger passenger: allPassengers){
             passenger.setGroupNum(rand.nextInt(numberGroups));
         }
@@ -25,19 +52,33 @@ public class Simulation {
             i++;
         }
 
-        initialGroups = groups;
-        return initialGroups;
+        boardingInts = groups;
+        return boardingInts;
     }
-    public int simulateBoardingTime(ArrayList<Passenger> allPassengers, Plane plane, int[] boardingInts, int numberGroups) {
-        
+
+    public Boolean splitFamilies(){
+        for (Passenger passenger:allPassengers){
+            if (passenger.getFamily() != null) {
+                ArrayList<Passenger> family = passenger.getFamily();
+                family.remove(passenger);
+                for (Passenger relative: family){
+                    if (relative.getGroupNum() != passenger.getGroupNum()) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+    public int simulateBoardingTime() {
+        long startTime = System.nanoTime();
         double ticksElapsed = 0;
-        System.out.println("Starting boarding simulation...");
         // make a priority queue for boarding events
         // custom comparator using lamba to sort by start time
         PriorityQueue<Event> eventsQueue = new PriorityQueue<>((e1, e2) -> Double.compare(e1.getTime(), e2.getTime()));
 
-        for (int i = 0; i < allPassengers.size(); i++) {
-            Passenger passenger = allPassengers.get(i);
+        for (int i = 0; i < allPassengers.length; i++) {
+            Passenger passenger = allPassengers[i];
             int boardingGroup = boardingInts[i];
             passenger.setGroupNum(boardingGroup);
         }
@@ -62,17 +103,9 @@ public class Simulation {
             }
         }
 
-        
-
         // check if families are split up
-        for (Passenger passenger:allPassengers){
-            if (passenger.getFamily() != null) {
-                for (Passenger relative: passenger.getFamily()){
-                    if (relative.getGroupNum() != passenger.getGroupNum()) {
-                        return 999999;
-                    }
-                }
-            }
+        if (splitFamilies()){
+            return 999999999;
         }
 
         //make the plane aisle
@@ -128,6 +161,9 @@ public class Simulation {
 
         // default return
         duration = (int) ticksElapsed;
+/*         long endTime = System.nanoTime();
+        long elapsed = (endTime - startTime);
+        System.out.println(elapsed/1000000); */
         return duration;
     }
 

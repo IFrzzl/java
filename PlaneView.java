@@ -66,6 +66,8 @@ class PlaneView extends JPanel {
                 JButton seatButton = new JButton();
                 seatButton.setPreferredSize(new Dimension(buttonSize, buttonSize)); // Fixed size
 
+                // color schemes
+
                 switch (seatingChart[i][j].getStatus()) {
                     case BUSINESS:
                         seatButton.setBackground(new Color(251, 109, 112));
@@ -99,10 +101,29 @@ class PlaneView extends JPanel {
                         seatButton.setBackground(Color.GRAY);
                         break;
                 }
-
                 buttonGrid.add(seatButton);
 
             }
         }
+    }
+
+    public void updateButtons(){
+        Color[] groupColors = new Color[]{Color.RED, Color.ORANGE, Color.YELLOW, Color.GREEN, Color.CYAN, Color.MAGENTA};
+
+        Component[] allButtons = buttonGrid.getComponents();
+        int len = seatingChart.length;
+        int width = seatingChart[0].length;
+        for (int i = 0; i<len; i++){
+            for (int j = 0; j<width; j++){
+                    Seat seat = seatingChart[i][j];
+                    int seatIndex = i*width + j;
+                    JButton seatButton = (JButton) allButtons[seatIndex];
+                    if (seat.getPassenger() == null ) {
+                        seatButton.setBackground(Color.GRAY);
+                        continue;
+                    }
+                    seatButton.setBackground(groupColors[seat.getPassenger().getGroupNum()]);
+                }
+            }
     }
 }

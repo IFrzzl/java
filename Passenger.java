@@ -9,13 +9,20 @@ class Passenger {
     double sittingSpeed;
     Seat seat;
     int bags;
-   public int id = 69;
 
     int groupNum;
     public int queuePosition = -1; // -1 means not in queue
 
-    public Passenger() {
-
+    public Passenger() {}
+    public Passenger(Passenger host){
+        // copy constructor for deep copy arrays
+        this.family = host.getFamily();
+        this.walkingSpeed = host.getWalkingSpeed();
+        this.stowingSpeed = host.getStowingSpeed();
+        this.sittingSpeed = host.getSittingSpeed();
+        this.seat = host.getSeat();
+        this.bags = host.getBags();
+        this.groupNum = host.getGroupNum();
     }
 
     public void setWalkingSpeed(double walkingSpeed) {
