@@ -11,6 +11,7 @@ public class Simulation {
         this.allPassengers = allPassengers;
         this.plane = plane;
         this.numberGroups = numberGroups;
+        this.length = allPassengers.length;
     }
 
     public int[] getBoardingInts() {
@@ -35,7 +36,7 @@ public class Simulation {
     public int[] generateInitialGroups(){
         Random rand = new Random();
         int[] groups = new int[allPassengers.length];
-        length = allPassengers.length;
+        this.length = allPassengers.length;
 
         for (Passenger passenger: allPassengers){
             passenger.setGroupNum(rand.nextInt(numberGroups));
@@ -43,9 +44,12 @@ public class Simulation {
         // check families and make array
         int i = 0;
         for (Passenger passenger: allPassengers){
-            if (passenger.getFamily() != null){
-                for (Passenger relative: passenger.getFamily()){
-                    relative.setGroupNum(passenger.getGroupNum());
+            if (passenger.getFamily() != null) {
+                ArrayList<Passenger> family = passenger.getFamily();
+                family.remove(passenger);
+                int group = family.get(rand.nextInt(family.size())).getGroupNum();
+                for (Passenger relative: family){
+                    relative.setGroupNum(group);
                 }
             }
             groups[i] = passenger.getGroupNum();
@@ -105,6 +109,7 @@ public class Simulation {
 
         // check if families are split up
         if (splitFamilies()){
+            this.duration = 999999999;
             return 999999999;
         }
 
@@ -160,7 +165,7 @@ public class Simulation {
         }
 
         // default return
-        duration = (int) ticksElapsed;
+        this.duration = (int) ticksElapsed;
 /*         long endTime = System.nanoTime();
         long elapsed = (endTime - startTime);
         System.out.println(elapsed/1000000); */

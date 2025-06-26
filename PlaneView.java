@@ -9,10 +9,13 @@ class PlaneView extends JPanel {
     int rows;
     int cols;
     JPanel buttonGrid; 
-
+    Passenger[] passengers;
     public PlaneView() {}
 
-    public PlaneView(Plane plane) {
+    public void setPassengers( Passenger[] passengers){
+        this.passengers = passengers;
+    }
+    public void setPlane(Plane plane){
         this.plane = plane;
         this.rows = plane.getRows();
         this.cols = plane.getWidth();
@@ -108,22 +111,21 @@ class PlaneView extends JPanel {
     }
 
     public void updateButtons(){
-        Color[] groupColors = new Color[]{Color.RED, Color.ORANGE, Color.YELLOW, Color.GREEN, Color.CYAN, Color.MAGENTA};
+        Color[] groupColors = new Color[]{Color.PINK, Color.ORANGE, Color.YELLOW, Color.GREEN, Color.CYAN, Color.MAGENTA};
 
         Component[] allButtons = buttonGrid.getComponents();
         int len = seatingChart.length;
         int width = seatingChart[0].length;
-        for (int i = 0; i<len; i++){
-            for (int j = 0; j<width; j++){
-                    Seat seat = seatingChart[i][j];
-                    int seatIndex = i*width + j;
-                    JButton seatButton = (JButton) allButtons[seatIndex];
-                    if (seat.getPassenger() == null ) {
-                        seatButton.setBackground(Color.GRAY);
-                        continue;
-                    }
-                    seatButton.setBackground(groupColors[seat.getPassenger().getGroupNum()]);
-                }
-            }
+
+        for (Component button: allButtons){
+            JButton seatButton = (JButton) button;
+            seatButton.setBackground(Color.LIGHT_GRAY);
+        }
+        for (Passenger passenger: passengers){
+            Seat seat = passenger.getSeat();
+            int seatIndex = seat.getRow()*width + seat.getSeat();
+            JButton seatButton = (JButton) allButtons[seatIndex];
+            seatButton.setBackground(groupColors[passenger.getGroupNum()]);
+        }
     }
 }

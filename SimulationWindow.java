@@ -9,7 +9,6 @@ public class SimulationWindow {
 
     public SimulationWindow(Plane plane) {
         this.plane = plane;
-        this.planeView = new PlaneView(plane);
         // Stops it from trying to render before it's ready lmao
         SwingUtilities.invokeLater(this::GUI);
     }
@@ -41,12 +40,18 @@ private void GUI() {
     frame.setVisible(true);
 }
 
-    public void setPlane(Plane plane) {
+    public void setPlaneView(Plane plane, Passenger[] passengers) {
         this.plane = plane;
-        planeView = new PlaneView(plane);
+        planeView.removeAll();
+        planeView.setPlane(plane);
+        planeView.setPassengers(passengers);
+        planeView.updateButtons();
+        planeView.repaint();
     }
 
-    public void refreshPlaneView() {
+    public void refreshPlaneView(Passenger[] passengers) {
+        planeView.setPassengers(passengers);
+        planeView.updateButtons();
         planeView.repaint();
     }
 }

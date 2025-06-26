@@ -2,22 +2,12 @@ public class Seat {
     int row;
     int seat;
     SeatStatus status;
-    Passenger passenger;
 
     public Seat(int row, int seat, SeatStatus status) {
         this.row = row;
         this.seat = seat;
         this.status = status;
     }
-
-    public void setPassenger(Passenger p){
-        passenger = p;
-    }
-
-    public Passenger getPassenger(){
-        return passenger;
-    }
-
     public int letterNumber(char letter) {
         return (int) letter - 64;
     }

@@ -36,7 +36,6 @@ public class Plane {
                     seatingChart[i][j].setSeat(j);
                     if (i < businessRows) {
                         seatingChart[i][j].setStatus(SeatStatus.BUSINESS);
-                        // sets the middle seats in the blocks to OTHER
                     } else {
                         seatingChart[i][j].setStatus(SeatStatus.ECONOMY);
                     }
