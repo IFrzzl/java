@@ -10,6 +10,7 @@ class PlaneView extends JPanel {
     int cols;
     JPanel buttonGrid; 
     Passenger[] passengers;
+    int[] groups;
     public PlaneView() {}
 
     public void setPassengers( Passenger[] passengers){
@@ -110,7 +111,7 @@ class PlaneView extends JPanel {
         }
     }
 
-    public void updateButtons(){
+    public void updateButtons(int[] groups){
         Color[] groupColors = new Color[]{Color.PINK, Color.ORANGE, Color.YELLOW, Color.GREEN, Color.CYAN, Color.MAGENTA};
 
         Component[] allButtons = buttonGrid.getComponents();
@@ -125,7 +126,7 @@ class PlaneView extends JPanel {
             Seat seat = passenger.getSeat();
             int seatIndex = seat.getRow()*width + seat.getSeat();
             JButton seatButton = (JButton) allButtons[seatIndex];
-            seatButton.setBackground(groupColors[passenger.getGroupNum()]);
+            seatButton.setBackground(groupColors[groups[passenger.getIndex()]]);
         }
     }
 }

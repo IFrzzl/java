@@ -3,26 +3,22 @@ import java.util.ArrayList;
 class Passenger {
 
     //attributes
-    ArrayList<Passenger> family;
+    int[] family; // index in allPassengers
     double walkingSpeed;
     double stowingSpeed;
     double sittingSpeed;
     Seat seat;
     int bags;
+    int index;
 
-    int groupNum;
-    public int queuePosition = -1; // -1 means not in queue
-
-    public Passenger() {}
-    public Passenger(Passenger host){
-        // copy constructor for deep copy arrays
-        this.family = host.getFamily();
-        this.walkingSpeed = host.getWalkingSpeed();
-        this.stowingSpeed = host.getStowingSpeed();
-        this.sittingSpeed = host.getSittingSpeed();
-        this.seat = host.getSeat();
-        this.bags = host.getBags();
-        this.groupNum = host.getGroupNum();
+    public Passenger(){}
+    public Passenger(int index, double walkingSpeed, double stowingSpeed, double sittingSpeed, Seat seat, int bags) {
+        this.index = index;
+        this.walkingSpeed = walkingSpeed;
+        this.stowingSpeed = stowingSpeed;
+        this.sittingSpeed = sittingSpeed;
+        this.seat = seat;
+        this.bags = bags;
     }
 
     public void setWalkingSpeed(double walkingSpeed) {
@@ -49,18 +45,17 @@ class Passenger {
     public Seat getSeat() {
         return seat;
     }
-    public void setFamily(ArrayList<Passenger> family) {
-        family.remove(this); // i have a feeling i might cause recursion problems lol
+    public void setFamily(int[] family) {
+/*         int[] safe = new int[family.length-1];
+        int j = 0;
+        for (int i = 0; i<family.length-1; i++){
+            if (family[i] != this.index){safe[j++] = family[i];}
+        }
+        this.family = safe; */
         this.family = family;
     }
-    public ArrayList<Passenger> getFamily() {
+    public int[] getFamily() {
         return family;
-    }
-    public void setGroupNum(int groupNum) {
-        this.groupNum = groupNum;
-    }
-    public int getGroupNum() {
-        return groupNum;
     }
     public int getBags() {
         return bags;
@@ -68,4 +63,5 @@ class Passenger {
     public void setBags(int bags) {
         this.bags = bags;
     }
+    public int getIndex(){return index;}
 }

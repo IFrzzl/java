@@ -12,6 +12,7 @@ public class Simulation {
         this.plane = plane;
         this.numberGroups = numberGroups;
         this.length = allPassengers.length;
+        generateInitialGroups();
     }
 
     public int[] getBoardingInts() {
@@ -33,40 +34,34 @@ public class Simulation {
         boardingInts = bi;
     }
 
-    public int[] generateInitialGroups(){
-        Random rand = new Random();
-        int[] groups = new int[allPassengers.length];
-        this.length = allPassengers.length;
-
-        for (Passenger passenger: allPassengers){
-            passenger.setGroupNum(rand.nextInt(numberGroups));
-        }
-        // check families and make array
-        int i = 0;
+    public void joinFamilies(){
         for (Passenger passenger: allPassengers){
             if (passenger.getFamily() != null) {
-                ArrayList<Passenger> family = passenger.getFamily();
-                family.remove(passenger);
-                int group = family.get(rand.nextInt(family.size())).getGroupNum();
-                for (Passenger relative: family){
-                    relative.setGroupNum(group);
+                int[] family = passenger.getFamily();
+                int group = boardingInts[family[RandomProvider.rand.nextInt(family.length)]];
+                for (int relative: family){
+                    boardingInts[relative] = group;
                 }
             }
-            groups[i] = passenger.getGroupNum();
-            i++;
         }
+    }
 
+    public void generateInitialGroups(){
+        int[] groups = new int[length];
+
+        for (int i = 0; i<length; i++){
+            groups[i] = RandomProvider.rand.nextInt(numberGroups);
+        }
         boardingInts = groups;
-        return boardingInts;
+        joinFamilies();
     }
 
     public Boolean splitFamilies(){
         for (Passenger passenger:allPassengers){
             if (passenger.getFamily() != null) {
-                ArrayList<Passenger> family = passenger.getFamily();
-                family.remove(passenger);
-                for (Passenger relative: family){
-                    if (relative.getGroupNum() != passenger.getGroupNum()) {
+                int[] family = passenger.getFamily();
+                for (int relative: family){
+                    if (boardingInts[relative] != boardingInts[passenger.getIndex()]) {
                         return true;
                     }
                 }
@@ -74,6 +69,20 @@ public class Simulation {
         }
         return false;
     }
+
+    void mutate(){
+        int target = RandomProvider.rand.nextInt(allPassengers.length);
+        Passenger passenger = allPassengers[target];
+        int[] family = passenger.getFamily();
+        int newGroup = RandomProvider.rand.nextInt(numberGroups);
+        if (family != null){
+            for (int relative: family){
+                boardingInts[relative] = newGroup;
+            }
+        }
+        boardingInts[passenger.getIndex()] = newGroup;
+    }
+
     public int simulateBoardingTime() {
         long startTime = System.nanoTime();
         double ticksElapsed = 0;
@@ -81,29 +90,18 @@ public class Simulation {
         // custom comparator using lamba to sort by start time
         PriorityQueue<Event> eventsQueue = new PriorityQueue<>((e1, e2) -> Double.compare(e1.getTime(), e2.getTime()));
 
-        for (int i = 0; i < allPassengers.length; i++) {
-            Passenger passenger = allPassengers[i];
-            int boardingGroup = boardingInts[i];
-            passenger.setGroupNum(boardingGroup);
-        }
-
         // sorting allPassengers by boarding group
-        Passenger[][] boardingGroups = new Passenger[numberGroups][];
+        int[][] boardingGroups = new int[numberGroups][];
         for (int i = 0; i < numberGroups; i++) {
-            int numberPassengers = 0;
-            for (Passenger passenger : allPassengers) {
-                if (passenger.getGroupNum() == i) {
-                    numberPassengers++;
+            ArrayList<Integer> members = new ArrayList<>();
+            for (int j = 0; j<allPassengers.length; j++){
+                if (boardingInts[j] == i){
+                    members.add(j);
                 }
             }
-
-            boardingGroups[i] = new Passenger[numberPassengers];
-            int index = 0;
-            for (Passenger passenger : allPassengers) {
-                if (passenger.getGroupNum() == i) {
-                    boardingGroups[i][index] = passenger;
-                    index++;
-                }
+            boardingGroups[i] = new int[members.size()];
+            for (int j = 0; j<members.size(); j++){
+                boardingGroups[i][j] = members.get(j);
             }
         }
 
@@ -119,7 +117,7 @@ public class Simulation {
         Queue<Passenger> boardingQueue = new LinkedList<Passenger>();
         for (int i = 0; i<numberGroups; i++){
             for (int j = 0; j<boardingGroups[i].length; j++) {
-                boardingQueue.add(boardingGroups[i][j]);
+                boardingQueue.add(allPassengers[boardingGroups[i][j]]);
             }
         }
 
@@ -130,12 +128,10 @@ public class Simulation {
             Passenger passenger = currentEvent.getPassenger();
             double time = currentEvent.getTime();
             int position = currentEvent.getPosition();
-            passenger.queuePosition = position;
             switch (currentEvent.getType()) {
                 case EventTypes.SITTING:
                     time += passenger.getSittingSpeed();
                     aisle.remove(position);
-                    passenger.getSeat().setStatus(SeatStatus.OCCUPIED);
                     break;
                 case EventTypes.WALK:
                     if (position >= passenger.getSeat().getRow()) {
@@ -155,12 +151,13 @@ public class Simulation {
                     if (boardingQueue.peek().getBags()>1) {
                         queuePosition = 1;
                     }
-                    Event boardingEvent = new Event(EventTypes.WALK, time + 1, boardingQueue.poll(), queuePosition);
+                    Event boardingEvent = new Event(EventTypes.WALK, time + 2, boardingQueue.poll(), queuePosition);
                     eventsQueue.add(boardingEvent);
                 }
-                }
+            }
             
-
+/*             aisle.print(); */
+/*             try {Thread.sleep(3000);} catch (Exception e){} */
             if (time>ticksElapsed) {ticksElapsed = time;}
         }
 

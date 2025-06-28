@@ -12,11 +12,16 @@ public class constants {
 
     // constants for passenger generation probabilities
     public static final double PROBABILITY_DISABLED = 0.03;
-    public static final double PROBABILITY_FAMILIES = 0.00;
+    public static final double PROBABILITY_FAMILIES = 0.20;
     public static final double PROBABILITY_OLD = 0.10;
     public static final double PROBABILITY_CHILDREN = 0.10;
     public static final double PROBABILITY_BAGS = 0.80;
 
+    // ga parameter constants
+    public static final double ELITISM = 0.05;
+    public static final int TOURNAMENT_SIZE = 3;
+    public static final double SELECTION_POOL = 0.20;
+    public static final double MUTATION = 0.15;
     static {
 
     }

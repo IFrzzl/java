@@ -20,8 +20,8 @@ public class AisleQueue {
                 return -1;
             }
             queue[1] = passenger;
-            queue[0] = new Passenger();
-            queue[0].setGroupNum(-1);
+            Passenger placeholder = new Passenger();
+            placeholder.setSeat(null);
             return 0;
         } else {
             queue[0] = passenger;
@@ -45,7 +45,7 @@ public class AisleQueue {
     }
 
     public void advance(int index) { 
-        if (index < 0 || index >= queue.length - 1|| queue[index] == null) {
+        if (index < 0 || index > queue.length - 1|| queue[index] == null) {
             return;
         }
         queue[index + 1] = queue[index];
@@ -56,5 +56,19 @@ public class AisleQueue {
             queue[index] = null;
         }
 
+    }
+
+    public void print(){
+        for (Passenger passenger: queue) {
+            int i = 0;
+            if (passenger != null){
+                i = passenger.getIndex();
+            } else {
+                i = -1;
+            }
+            System.out.print(i + "   ");
+
+        }
+                    System.out.println("");
     }
 }

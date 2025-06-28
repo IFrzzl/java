@@ -40,18 +40,16 @@ private void GUI() {
     frame.setVisible(true);
 }
 
-    public void setPlaneView(Plane plane, Passenger[] passengers) {
+    public void setPlaneView(Plane plane, Passenger[] allPassengers) {
         this.plane = plane;
         planeView.removeAll();
         planeView.setPlane(plane);
-        planeView.setPassengers(passengers);
-        planeView.updateButtons();
+        planeView.setPassengers(allPassengers);
         planeView.repaint();
     }
 
-    public void refreshPlaneView(Passenger[] passengers) {
-        planeView.setPassengers(passengers);
-        planeView.updateButtons();
+    public void refreshPlaneView(int[] groups) {
+        planeView.updateButtons(groups);
         planeView.repaint();
     }
 }
