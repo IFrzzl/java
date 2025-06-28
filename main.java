@@ -24,7 +24,7 @@ public class main {
     public static Plane globalPlane;
 
     public static void main(String[] args) {
-        Plane plane = new Plane(16, 4, 12, 6, new int[]{3, 3}, new int[]{5 ,9, 12, 15}, "Boeing 737");
+        Plane plane = new Plane(8, 2, 6, 4, new int[]{2, 2}, new int[]{0, 7}, "Boeing 737");
         globalPlane = plane;
 
         final int MAX_GROUPS = 6;
@@ -135,12 +135,6 @@ public class main {
         int selectionCount = (int)(constants.SELECTION_POOL * simulations.length) + 1;
         Simulation[] fittestSimulations = Arrays.copyOfRange(findQuickest(simulations), 0, selectionCount);
         Simulation[] newPopulation = new Simulation[simulations.length];
-        
-
-        // Elitism - keep the very best
-        for (int i = 0; i < ELITE_SIMULATIONS; i++) {
-            newPopulation[i] = fittestSimulations[i];
-        }
 
         // Parallel crossovers
         List<Future<Simulation>> crossoverFutures = new ArrayList<>();
@@ -170,6 +164,11 @@ public class main {
             if (RandomProvider.rand.nextDouble() < constants.MUTATION && simulation != null) {
                 simulation.mutate();
             }
+
+        // Elitism - keep the very best
+        for (int i = 0; i < ELITE_SIMULATIONS; i++) {
+            newPopulation[i] = fittestSimulations[i];
+        }
         }
 
         return newPopulation;

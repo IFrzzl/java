@@ -18,10 +18,10 @@ public class constants {
     public static final double PROBABILITY_BAGS = 0.80;
 
     // ga parameter constants
-    public static final double ELITISM = 0.05;
-    public static final int TOURNAMENT_SIZE = 3;
-    public static final double SELECTION_POOL = 0.20;
-    public static final double MUTATION = 0.15;
+    public static final double ELITISM = 0.08;
+    public static final int TOURNAMENT_SIZE = 4;
+    public static final double SELECTION_POOL = 0.5;
+    public static final double MUTATION = 0.25;
     static {
 
     }
