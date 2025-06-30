@@ -124,10 +124,19 @@ public class Simulation {
         eventsQueue.add(new Event(EventTypes.WALK, 0, boardingQueue.poll(), 0)); // first passenger starts walking at time 0
 
         while (!eventsQueue.isEmpty()) {
+/*             try {Thread.sleep(2);} catch (Exception e){} */
+/*              aisle.print();  */
             Event currentEvent = eventsQueue.poll();
             Passenger passenger = currentEvent.getPassenger();
             double time = currentEvent.getTime();
             int position = currentEvent.getPosition();
+/*             if (aisle.isEmpty()){
+                for (Event e: eventsQueue){
+                    System.out.println(e.getType());
+                    System.out.println(e.getPassenger());
+                    System.out.println(e.getPosition());
+                }
+            } */
             switch (currentEvent.getType()) {
                 case EventTypes.SITTING:
                     time += passenger.getSittingSpeed();
@@ -148,16 +157,15 @@ public class Simulation {
             if (!boardingQueue.isEmpty()) {
                 if (aisle.push(boardingQueue.peek()) != -1){
                     int queuePosition = 0;
-                    if (boardingQueue.peek().getBags()>1) {
+/*                     if (boardingQueue.peek().getBags()>1) {
                         queuePosition = 1;
-                    }
+                    } */
                     Event boardingEvent = new Event(EventTypes.WALK, time + 2, boardingQueue.poll(), queuePosition);
                     eventsQueue.add(boardingEvent);
                 }
             }
             
-/*             aisle.print(); */
-/*             try {Thread.sleep(3000);} catch (Exception e){} */
+
             if (time>ticksElapsed) {ticksElapsed = time;}
         }
 
@@ -166,6 +174,7 @@ public class Simulation {
 /*         long endTime = System.nanoTime();
         long elapsed = (endTime - startTime);
         System.out.println(elapsed/1000000); */
+
         return duration;
     }
 

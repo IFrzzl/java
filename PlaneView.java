@@ -112,7 +112,7 @@ class PlaneView extends JPanel {
     }
 
     public void updateButtons(int[] groups){
-        Color[] groupColors = new Color[]{Color.PINK, Color.ORANGE, Color.YELLOW, Color.GREEN, Color.CYAN, Color.MAGENTA};
+        Color[] groupColors = new Color[]{Color.RED, Color.ORANGE, Color.YELLOW, Color.GREEN, Color.CYAN, Color.BLUE, Color.MAGENTA, Color.PINK, Color.LIGHT_GRAY, Color.GRAY, Color.DARK_GRAY, Color.WHITE, Color.BLACK};
 
         Component[] allButtons = buttonGrid.getComponents();
         int len = seatingChart.length;

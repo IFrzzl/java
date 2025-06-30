@@ -15,7 +15,9 @@ public class AisleQueue {
     public int push(Passenger passenger) {
 
         if (queue[0] != null) {return -1;}
-        if (passenger.getBags() > 1) {
+        queue[0] = passenger;
+        return 0;
+/*         if (passenger.getBags() > 1) {
             if (queue[1] != null) {
                 return -1;
             }
@@ -24,9 +26,8 @@ public class AisleQueue {
             placeholder.setSeat(null);
             return 0;
         } else {
-            queue[0] = passenger;
-            return 0;
-        }
+
+        } */
     }
 
     public Passenger remove(int index) {
@@ -37,9 +38,9 @@ public class AisleQueue {
 
         Passenger passenger = queue[index];
 
-        if (passenger.getBags() > 1) {
+/*         if (passenger.getBags() > 1) {
             queue[index - 1] = null;
-        }
+        } */
         queue[index] = null;
         return passenger;
     }
@@ -49,12 +50,12 @@ public class AisleQueue {
             return;
         }
         queue[index + 1] = queue[index];
-        if (queue[index].getBags()>1){
+/*         if (queue[index].getBags()>1){
             queue[index] = queue[index - 1];
             queue[index - 1] = null;
-        } else {
+        } else { */
             queue[index] = null;
-        }
+/*         } */
 
     }
 
@@ -70,5 +71,14 @@ public class AisleQueue {
 
         }
                     System.out.println("");
+    }
+
+    public Boolean isEmpty(){
+        for (Passenger i:queue){
+            if (i != null){
+                return false;
+            }
+        }
+        return true;
     }
 }

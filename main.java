@@ -24,12 +24,12 @@ public class main {
     public static Plane globalPlane;
 
     public static void main(String[] args) {
-        Plane plane = new Plane(8, 2, 6, 4, new int[]{2, 2}, new int[]{0, 7}, "Boeing 737");
+        Plane plane = new Plane(20, 6, 14, 6, new int[]{3, 3}, new int[]{0, 7}, "Boeing 737");
         globalPlane = plane;
 
-        final int MAX_GROUPS = 6;
-        final int NUMBER_SIMULATIONS = 200;
-        final int NUMBER_GENERATIONS = 2000;
+
+        final int NUMBER_SIMULATIONS = 1000;
+        final int NUMBER_GENERATIONS = 10000;
         SimulationWindow simulationWindow = new SimulationWindow(plane);
         
         Passenger[] allPassengers = new Passenger[plane.getCapacity()];
@@ -41,7 +41,7 @@ public class main {
 
         List<Future<Integer>> futures = new ArrayList<>();
         for (int i = 0; i < NUMBER_SIMULATIONS; i++) {
-            allSimulations[i] = new Simulation(allPassengers, plane, RandomProvider.rand.nextInt(3, MAX_GROUPS+1));
+            allSimulations[i] = new Simulation(allPassengers, plane, RandomProvider.rand.nextInt(3, constants.MAX_GROUPS+1));
              final int idx = i;
             futures.add(executor.submit(() -> allSimulations[idx].simulateBoardingTime()));
         }
@@ -55,13 +55,13 @@ public class main {
 
             Simulation w = findQuickest(allSimulations)[0];
             simulationWindow.refreshPlaneView(w.getBoardingInts());
-            try {Thread.sleep(400);} catch (Exception e){}
+            try {Thread.sleep(0);} catch (Exception e){}
             System.out.println("Generation " + i + " complete. Current winning time: " + findQuickest(allSimulations)[0].getDuration());
         }
         executor.shutdown();
 
         Simulation winner = findQuickest(allSimulations)[0];
-        simulationWindow.refreshPlaneView(winner.getBoardingInts()); 
+        simulationWindow.refreshPlaneView(winner.getBoardingInts());  
         System.out.println(winner.getBoardingInts());
 
     }
@@ -138,12 +138,20 @@ public class main {
 
         // Parallel crossovers
         List<Future<Simulation>> crossoverFutures = new ArrayList<>();
-        int crossoversNeeded = newPopulation.length - ELITE_SIMULATIONS;
+        int newSimulations = (int)((double) newPopulation.length * (1-constants.NEW_SIMULATIONS));
+        int crossoversNeeded = newPopulation.length - newSimulations - ELITE_SIMULATIONS;
+
+        for (int i = 0; i<newSimulations; i++){
+            
+            Simulation newSim = new Simulation(globalPassengers, globalPlane, RandomProvider.rand.nextInt(3, constants.MAX_GROUPS+1));
+            newPopulation[i] = newSim;
+            crossoverFutures.add(executor.submit(()-> newSim.simulateBoardingTime))
+        }
 
         for (int i = 0; i < crossoversNeeded; i++) {
             crossoverFutures.add(executor.submit(() -> crossover(fittestSimulations)));
         }
-        int index = ELITE_SIMULATIONS;
+        int index = ELITE_SIMULATIONS + newSimulations - 1;
         while (crossoversNeeded > 0) {
                 Future<Simulation> future = crossoverFutures.getFirst();
                 try {
@@ -159,6 +167,7 @@ public class main {
                     e.printStackTrace();
                 }
             }
+        
 
         for (Simulation simulation : newPopulation) {
             if (RandomProvider.rand.nextDouble() < constants.MUTATION && simulation != null) {
