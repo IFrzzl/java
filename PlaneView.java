@@ -22,8 +22,8 @@ class PlaneView extends JPanel {
         this.cols = plane.getWidth();
         this.seatingChart = plane.getSeatingChart();
 
-        final int buttonSize = constants.BUTTON_SIZE;
-        final int gap = constants.BUTTON_GAP;
+        final int buttonSize = parameters.BUTTON_SIZE;
+        final int gap = parameters.BUTTON_GAP;
         buttonGrid = new JPanel(new GridLayout(rows, cols, gap, gap));
         buttonGrid.setPreferredSize(new Dimension(
             cols * buttonSize + (cols - 1) * gap,
@@ -112,8 +112,24 @@ class PlaneView extends JPanel {
     }
 
     public void updateButtons(int[] groups){
-        Color[] groupColors = new Color[]{Color.RED, Color.ORANGE, Color.YELLOW, Color.GREEN, Color.CYAN, Color.BLUE, Color.MAGENTA, Color.PINK, Color.LIGHT_GRAY, Color.GRAY, Color.DARK_GRAY, Color.WHITE, Color.BLACK};
-
+        Color[] groupColours = {
+    new Color(255, 105, 120),   // Vivid Soft Red
+    new Color(255, 155, 70),    // Vivid Apricot Orange
+    new Color(255, 220, 80),    // Bright Pastel Yellow
+    new Color(120, 230, 130),   // Saturated Mint Green
+    new Color(100, 190, 255),   // Sky Blue
+    new Color(155, 130, 255),   // Lilac Purple
+    new Color(255, 140, 230),   // Bright Light Pink
+    new Color(255, 170, 210),   // Punchy Cotton Candy
+    new Color(130, 255, 210),   // Fresh Aqua Teal
+    new Color(255, 195, 110),   // Soft Tangerine
+    new Color(160, 220, 255),   // Cool Sky
+    new Color(100, 180, 255),   // Bright Baby Blue
+    new Color(100, 255, 245),   // Cyan Ice
+    new Color(185, 145, 255),   // Electric Periwinkle
+    new Color(255, 120, 185),   // Bubblegum Pink
+    new Color(255, 165, 165)    // Rosy Blush
+};
         Component[] allButtons = buttonGrid.getComponents();
         int len = seatingChart.length;
         int width = seatingChart[0].length;
@@ -126,7 +142,7 @@ class PlaneView extends JPanel {
             Seat seat = passenger.getSeat();
             int seatIndex = seat.getRow()*width + seat.getSeat();
             JButton seatButton = (JButton) allButtons[seatIndex];
-            seatButton.setBackground(groupColors[groups[passenger.getIndex()]]);
+            seatButton.setBackground(groupColours[groups[passenger.getIndex()]]);
         }
     }
 }

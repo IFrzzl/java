@@ -1,4 +1,4 @@
-public class constants {
+public class parameters {
 
     public static final int MAX_GROUPS = 12;
     public static final int GROUP_STAGGER = 600;
@@ -11,19 +11,20 @@ public class constants {
     public static final int BUTTON_SIZE = 20; // Size of each seat button in the PlaneView
     public static final int BUTTON_GAP = 5; // Gap between seats
 
-    // constants for passenger generation probabilities
+    // parameters for passenger generation probabilities
     public static final double PROBABILITY_DISABLED = 0.03;
-    public static final double PROBABILITY_FAMILIES = 0.20;
+    public static final double PROBABILITY_FAMILIES = 0.00;
     public static final double PROBABILITY_OLD = 0.10;
     public static final double PROBABILITY_CHILDREN = 0.10;
     public static final double PROBABILITY_BAGS = 0.80;
 
-    // ga parameter constants
-    public static final double ELITISM = 0.05;
-    public static final int TOURNAMENT_SIZE = 4;
-    public static final double SELECTION_POOL = 0.4;
-    public static final double MUTATION = 0.12;
-    public static final double NEW_SIMULATIONS = 0.20;
+    // ga parameter parameters
+    public static double ELITISM = 0.05;
+    public static int TOURNAMENT_SIZE = 4;
+    public static double SELECTION_POOL = 0.4;
+    public static double MUTATION = 0.12;
+    public static double NEW_SIMULATIONS = 0.1;
+    public static int SPLIT_PENALTY = 700; //ticks
     static {
 
     }
