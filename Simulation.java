@@ -1,7 +1,7 @@
 import java.util.*;
 
 public class Simulation {
-    int duration = 0;
+    int duration = 69;
     int[] boardingInts;
     int length = 0;
     Passenger[]allPassengers;
@@ -13,6 +13,32 @@ public class Simulation {
         this.numberGroups = numberGroups;
         this.length = allPassengers.length;
         generateInitialGroups();
+
+
+ /* boardingInts = new int[]{
+        12, 12, 12, 12,
+        12, 12, 12, 12,
+        11, 11, 11, 11,
+        11, 11, 11, 11,
+        10, 10, 10, 10,
+        10, 10, 10, 10,
+        9, 9, 9, 9, 9, 9,
+        9, 9, 9, 9, 9, 9,
+        8, 8, 8, 8, 8, 8,
+        8, 8, 8, 8, 8, 8,
+        7, 7, 7, 7, 7, 7,
+        6, 6, 6, 6, 6, 6,
+        5, 5, 5, 5, 5, 5,
+        5, 5, 5, 5, 5, 5,
+        4, 4, 4, 4, 4, 4, 
+        4, 4, 4, 4, 4, 4, 
+        3, 3, 3, 3, 3, 3, 
+        2, 2, 2, 2, 2, 2,
+        1, 1, 1, 1, 1, 1,
+        0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0,
+ };  */
+ 
 /*         boardingInts = new int[]{12, 12, 12, 12, 
 12, 12, 12, 12, 
 12, 12, 12, 12, 
@@ -113,8 +139,6 @@ public class Simulation {
             }
         }
         boardingInts[passenger2.getIndex()] = newGroup2;
-
-        simulateBoardingTime();
     }
 
     public int simulateBoardingTime() {
@@ -146,31 +170,31 @@ public class Simulation {
         //make the plane aisle
         AisleQueue aisle = new AisleQueue(plane.length + 2);
 
-        Queue<Passenger> boardingQueue = new LinkedList<Passenger>();
+        Queue<Integer> boardingQueue = new LinkedList<Integer>();
         for (int i = 0; i<numberGroups; i++){
             for (int j = 0; j<boardingGroups[i].length; j++) {
-                boardingQueue.add(allPassengers[boardingGroups[i][j]]);
+                boardingQueue.add(boardingGroups[i][j]);
             }
         }
-
         eventsQueue.add(new Event(EventTypes.WALK, 0, boardingQueue.poll(), 0)); // first passenger starts walking at time 0
 
         while (!eventsQueue.isEmpty()) {
+
             Event currentEvent = eventsQueue.poll();
-            Passenger passenger = currentEvent.getPassenger();
+            int passenger = currentEvent.getPassenger();
             double time = currentEvent.getTime();
             int position = currentEvent.getPosition();
             switch (currentEvent.getType()) {
                 case EventTypes.SITTING:
-                    time += passenger.getSittingSpeed();
+                    time += allPassengers[passenger].getSittingSpeed();
                     aisle.remove(position);
                     break;
                 case EventTypes.WALK:
-                    if (position >= passenger.getSeat().getRow()) {
-                        eventsQueue.add(new Event(EventTypes.SITTING, time + passenger.getStowingSpeed(), passenger, position));
+                    if (position >= allPassengers[passenger].getSeat().getRow()) {
+                        eventsQueue.add(new Event(EventTypes.SITTING, time + allPassengers[passenger].getStowingSpeed(), passenger, position));
                     } else if (aisle.freeSpace(position)) {
                         aisle.advance(position);
-                        eventsQueue.add(new Event(EventTypes.WALK, time + passenger.getWalkingSpeed(), passenger, position + 1));
+                        eventsQueue.add(new Event(EventTypes.WALK, time + allPassengers[passenger].getWalkingSpeed(), passenger, position + 1));
                     } else {
                         eventsQueue.add(new Event(EventTypes.WALK, time + 2, passenger, position)); // wait two ticks and try again
                     }
@@ -178,18 +202,25 @@ public class Simulation {
             }
             // always trying to cram another passenger on
             if (!boardingQueue.isEmpty()) {
-                if (boardingQueue.peek() == null){
+                Integer firstPassenger = boardingQueue.peek();
+                if (firstPassenger != null){
+                    if (aisle.push(firstPassenger) != -1){
+                        boardingQueue.poll();
+                        eventsQueue.add(new Event(EventTypes.WALK, time + 2, firstPassenger, 0));
+                    }
+                }
+/*                 if (boardingQueue.peek() == null){
                     System.out.println("WHAT THE FUCK"); // flip out
                 } else {
                     if (aisle.push(boardingQueue.peek()) != -1){
                         int queuePosition = 0;
     /*                     if (boardingQueue.peek().getBags()>1) {
                             queuePosition = 1;
-                        } */
+                        } 
                         Event boardingEvent = new Event(EventTypes.WALK, time + 2, boardingQueue.poll(), queuePosition);
                         eventsQueue.add(boardingEvent);
                     }
-                }
+                } */
             }
             
 
@@ -203,5 +234,13 @@ public class Simulation {
 
     public int getDuration(){
         return duration;
+    }
+
+    public void setDuration(int duration){
+        this.duration = duration;
+    }
+
+    public void setNumberGroups(int num){
+        this.numberGroups = num;
     }
 }

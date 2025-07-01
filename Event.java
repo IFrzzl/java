@@ -1,10 +1,10 @@
 public class Event {
     private EventTypes type;
     private double time;
-    private Passenger passenger;
+    private int passenger;
     private int position; // which row it happens in
 
-    public Event(EventTypes type, double time, Passenger passenger, int position) {
+    public Event(EventTypes type, double time, int passenger, int position) {
         this.type = type;
         this.time = time;
         this.passenger = passenger;
@@ -15,7 +15,7 @@ public class Event {
         return type;
     }
 
-    public Passenger getPassenger() {
+    public int getPassenger() {
         return passenger;
     }
 

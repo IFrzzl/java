@@ -16,7 +16,7 @@ public class SimulationWindow {
 private void GUI() {
     JFrame frame = new JFrame("Simulation Window");
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    frame.setSize(1500, 800);
+    frame.setSize(1000, 700);
 
     JMenuBar menuBar = new JMenuBar();
     JMenu fileMenu = new JMenu("File");
@@ -32,7 +32,7 @@ private void GUI() {
 
     JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, planeView, rightPanel);
     splitPane.setResizeWeight(0.7);
-    splitPane.setDividerLocation((int)(frame.getWidth() * 0.7));
+    splitPane.setDividerLocation((int)(frame.getWidth() * 0.5));
     splitPane.setContinuousLayout(true);
 
     frame.getContentPane().add(splitPane, BorderLayout.CENTER);

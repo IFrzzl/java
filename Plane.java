@@ -11,6 +11,7 @@ public class Plane {
 
         int[] blocks; // widths of each block e.g. [2, 4, 2]
         int aisles;
+        int[] aisle_indexes;
 
         String planeType;
 
@@ -21,10 +22,12 @@ public class Plane {
             this.width = seatsPerRow;
             this.blocks = blocks;
             this.exitRows = exitRows;
-            this.aisles = blocks.length - 1; // Default aisles
+            this.aisles = blocks.length - 1;
             this.planeType = planeType;
+            this.aisle_indexes = new int[blocks.length - 1];
             createSeatingChart();
             this.capacity = getCapacity();
+ 
         }
 
     public void createSeatingChart() {
@@ -60,6 +63,7 @@ public class Plane {
                     seatsBeforeAisle += j;
                     // set the aisle seat
                     seatingChart[i][seatsBeforeAisle].setStatus(SeatStatus.AISLE);
+                    this.aisle_indexes[j] = seatsBeforeAisle;
                 }
 
             }
@@ -119,5 +123,13 @@ public class Plane {
 
         public int getWidth() {
             return width + aisles;
+        }
+
+        public int[] getAisles(){
+            return aisle_indexes;
+        }
+
+        public String getType(){
+            return planeType;
         }
 }

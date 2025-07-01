@@ -22,45 +22,30 @@ class PlaneView extends JPanel {
         this.cols = plane.getWidth();
         this.seatingChart = plane.getSeatingChart();
 
+        add(new JLabel(plane.getType() +  " - Plane View"));
+
         final int buttonSize = parameters.BUTTON_SIZE;
         final int gap = parameters.BUTTON_GAP;
         buttonGrid = new JPanel(new GridLayout(rows, cols, gap, gap));
         buttonGrid.setPreferredSize(new Dimension(
-            cols * buttonSize + (cols - 1) * gap,
-            rows * buttonSize + (rows - 1) * gap
+            cols * buttonSize + (cols - 1) * gap + 30,
+            rows * buttonSize + (rows - 1) * gap + 30
         ));
 
         createSeatButtons(buttonSize);
 
         JPanel gridWrapper = new JPanel(new GridBagLayout());
-        buttonGrid.setBackground(new Color(17, 0, 102)); // Centers the seat grid inside the PlaneView panel
+        buttonGrid.setBackground(new Color(17, 0, 102));
+        Border coloured = BorderFactory.createLineBorder(Color.DARK_GRAY, 10);
+        Border bevel = BorderFactory.createRaisedBevelBorder();
+        Border compound = BorderFactory.createCompoundBorder(coloured, bevel);
+        buttonGrid.setBorder(compound);
+
         gridWrapper.add(buttonGrid);
 
         setLayout(new BorderLayout());
         add(gridWrapper, BorderLayout.CENTER);
         setBackground(Color.WHITE); // smoosh everything together
-    }
-    
-    // Not my code - from https://stackoverflow.com/questions/423950/rounded-swing-jbutton-using-java
-    private static class RoundedBorder implements Border {
-
-        private int radius;
-
-        RoundedBorder(int radius) {
-            this.radius = radius;
-        }
-
-        public Insets getBorderInsets(Component c) {
-            return new Insets(this.radius+1, this.radius+1, this.radius+2, this.radius);
-        }
-
-        public boolean isBorderOpaque() {
-            return true;
-        }
-
-        public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
-            g.drawRoundRect(x, y, width-1, height-1, radius, radius);
-        }
     }
 
     private void createSeatButtons(int buttonSize) {
@@ -98,11 +83,10 @@ class PlaneView extends JPanel {
                         seatButton.setBackground(new Color(235, 115, 35));
                         break;
                     case AISLE:
-                        seatButton.setBackground(new Color(217, 211, 205));
-                        seatButton.setBorder(new RoundedBorder(40 ));
+                        seatButton.setBackground(Color.DARK_GRAY);
                         break;
                     default:
-                        seatButton.setBackground(Color.GRAY);
+                        seatButton.setBackground(Color.DARK_GRAY);
                         break;
                 }
                 buttonGrid.add(seatButton);
@@ -134,15 +118,12 @@ class PlaneView extends JPanel {
         int len = seatingChart.length;
         int width = seatingChart[0].length;
 
-        for (Component button: allButtons){
-            JButton seatButton = (JButton) button;
-            seatButton.setBackground(Color.LIGHT_GRAY);
-        }
         for (Passenger passenger: passengers){
             Seat seat = passenger.getSeat();
             int seatIndex = seat.getRow()*width + seat.getSeat();
             JButton seatButton = (JButton) allButtons[seatIndex];
             seatButton.setBackground(groupColours[groups[passenger.getIndex()]]);
+            seatButton.setText(Integer.toString(groups[passenger.getIndex()]));
         }
     }
 }

@@ -13,7 +13,7 @@ public class parameters {
 
     // parameters for passenger generation probabilities
     public static final double PROBABILITY_DISABLED = 0.03;
-    public static final double PROBABILITY_FAMILIES = 0.00;
+    public static final double PROBABILITY_FAMILIES = 0.20;
     public static final double PROBABILITY_OLD = 0.10;
     public static final double PROBABILITY_CHILDREN = 0.10;
     public static final double PROBABILITY_BAGS = 0.80;
@@ -21,9 +21,9 @@ public class parameters {
     // ga parameter parameters
     public static double ELITISM = 0.05;
     public static int TOURNAMENT_SIZE = 4;
-    public static double SELECTION_POOL = 0.4;
-    public static double MUTATION = 0.12;
-    public static double NEW_SIMULATIONS = 0.1;
+    public static double SELECTION_POOL = 0.5;
+    public static double MUTATION = 0.2;
+    public static double NEW_SIMULATIONS = 0.3;
     public static int SPLIT_PENALTY = 700; //ticks
     static {
 

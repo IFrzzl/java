@@ -1,20 +1,23 @@
 public class AisleQueue {
-    private Passenger[] queue;
+    private int[] queue;
 
     public AisleQueue(int size) {
-        this.queue = new Passenger[size];
+        this.queue = new int[size];
+        for (int i = 0; i<size; i++){
+            queue[i] = -1;
+        }
     }
 
     public Boolean freeSpace(int index) {
         if (index + 1 >= queue.length) {
             return false;
         }
-        return queue[index + 1] == null;
+        return queue[index + 1] == -1;
     }
 
-    public int push(Passenger passenger) {
+    public int push(int passenger) {
 
-        if (queue[0] != null) {return -1;}
+        if (queue[0] != -1) {return -1;}
         queue[0] = passenger;
         return 0;
 /*         if (passenger.getBags() > 1) {
@@ -30,23 +33,23 @@ public class AisleQueue {
         } */
     }
 
-    public Passenger remove(int index) {
+    public int remove(int index) {
 
-        if (queue[index] == null) {
-            return null; // nothing to remove
+        if (queue[index] == -1) {
+            return -1; // nothing to remove
         }
 
-        Passenger passenger = queue[index];
+        int passenger = queue[index];
 
 /*         if (passenger.getBags() > 1) {
             queue[index - 1] = null;
         } */
-        queue[index] = null;
+        queue[index] = -1;
         return passenger;
     }
 
     public void advance(int index) { 
-        if (index < 0 || index > queue.length - 1|| queue[index] == null) {
+        if (index < 0 || index > queue.length - 1|| queue[index] == -1) {
             return;
         }
         queue[index + 1] = queue[index];
@@ -54,28 +57,21 @@ public class AisleQueue {
             queue[index] = queue[index - 1];
             queue[index - 1] = null;
         } else { */
-            queue[index] = null;
+            queue[index] = -1;
 /*         } */
 
     }
 
     public void print(){
-        for (Passenger passenger: queue) {
-            int i = 0;
-            if (passenger != null){
-                i = passenger.getIndex();
-            } else {
-                i = -1;
-            }
-            System.out.print(i + "   ");
-
+        for (int passenger: queue) {
+            System.out.print(passenger + "   ");
         }
-                    System.out.println("");
+        System.out.println("");
     }
 
     public Boolean isEmpty(){
-        for (Passenger i:queue){
-            if (i != null){
+        for (int i:queue){
+            if (i != -1){
                 return false;
             }
         }
