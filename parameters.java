@@ -19,7 +19,7 @@ public class parameters {
     public static final double PROBABILITY_BAGS = 0.80;
 
     // ga parameter parameters
-    public static double ELITISM = 0.01;
+    public static double ELITISM = 0.03;
     public static int TOURNAMENT_SIZE = 4;
     public static double SELECTION_POOL = 0.5;
     public static double MUTATION = 0.2;

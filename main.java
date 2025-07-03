@@ -23,7 +23,7 @@ public class main {
         System.out.println(plane.getCapacity());
 
 
-        final int NUMBER_SIMULATIONS = 1000;
+        final int NUMBER_SIMULATIONS = 5000;
         final int NUMBER_GENERATIONS = 10000;
         SimulationWindow simulationWindow = new SimulationWindow(plane);
         
