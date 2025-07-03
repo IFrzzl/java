@@ -1,6 +1,6 @@
 public class parameters {
 
-    public static final int MAX_GROUPS = 12;
+    public static final int MAX_GROUPS = 5;
     public static final int GROUP_STAGGER = 600;
     public static final int PASSENGER_STAGGER = 3;
     public static final int DEFAULT_WALKING_SPEED = 2;
@@ -19,7 +19,7 @@ public class parameters {
     public static final double PROBABILITY_BAGS = 0.80;
 
     // ga parameter parameters
-    public static double ELITISM = 0.05;
+    public static double ELITISM = 0.01;
     public static int TOURNAMENT_SIZE = 4;
     public static double SELECTION_POOL = 0.5;
     public static double MUTATION = 0.2;

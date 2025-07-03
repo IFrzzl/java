@@ -4,7 +4,7 @@ public class AisleQueue {
     public AisleQueue(int size) {
         this.queue = new int[size];
         for (int i = 0; i<size; i++){
-            queue[i] = -1;
+            queue[i] = -1;  
         }
     }
 

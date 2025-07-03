@@ -35,6 +35,8 @@ public class main {
         allSimulations = new Simulation[NUMBER_SIMULATIONS];
 
         List<Future<Integer>> futures = new ArrayList<>();
+        int currentDuration = 0;
+        int staticGenerations = 0;
         for (int i = 0; i < NUMBER_SIMULATIONS; i++) {
              //(int) Math.abs(RandomProvider.rand.nextGaussian()) * 3 + 3
             allSimulations[i] = new Simulation(allPassengers, plane, parameters.MAX_GROUPS);
@@ -42,7 +44,8 @@ public class main {
             futures.add(executor.submit(() -> allSimulations[idx].simulateBoardingTime()));
         }
         for (Future<Integer> future: futures){
-            try {future.get();} catch (Exception e) { e.printStackTrace(); }
+            try {future.get();
+            } catch (Exception e) { e.printStackTrace(); }
         } 
 
         // Highest level simulation control
@@ -50,6 +53,15 @@ public class main {
             allSimulations = evolution(allSimulations);
 
             Simulation w = findQuickest(allSimulations)[0];
+            if (w.getDuration() == currentDuration){
+                    staticGenerations++;
+                } else{
+                    currentDuration = w.getDuration();
+                    staticGenerations = 0;
+                }
+            parameters.NEW_SIMULATIONS = Math.min(Math.max(0.1, (staticGenerations / 10)) * 0.1, 0.5);
+            parameters.MUTATION = Math.min(0.4, Math.max(0.05, 0.05*staticGenerations));
+
             simulationWindow.refreshPlaneView(w.getBoardingInts());
 /*             try {Thread.sleep(0);} catch (Exception e){} */
             System.out.println("Generation " + i + " complete. Current winning time: " + findQuickest(allSimulations)[0].getDuration());
