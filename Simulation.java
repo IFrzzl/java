@@ -178,7 +178,7 @@ public class Simulation {
         }
 
         //make the plane aisle
-        AisleQueue aisle = new AisleQueue(plane.length + 2);
+        AisleQueue aisle = new AisleQueue(plane.getLength() + 2);
 
         Queue<Integer> boardingQueue = new LinkedList<Integer>();
         for (int i = 0; i<numberGroups; i++){

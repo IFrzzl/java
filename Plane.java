@@ -1,20 +1,20 @@
 public class Plane {
-        Seat[][] seatingChart;
+        private Seat[][] seatingChart;
 
-        int length;
-        int width;
+        private int length;
+        private int width;
         int capacity;
 
-        int businessRows;
-        int seatsperBusinessRow;;
-        int economyRows;
-        int[] exitRows;
+        private int businessRows;
+        private int seatsperBusinessRow;;
+        private int economyRows;
+        private int[] exitRows;
 
-        int[] blocks; // widths of each block e.g. [2, 4, 2]
-        int aisles;
-        int[] aisle_indexes;
+        private int[] blocks; // widths of each block e.g. [2, 4, 2]
+        private int aisles;
+        private int[] aisle_indexes;
 
-        String planeType;
+        private String planeType;
 
     public Plane(int length, int businessRows, int economyRows, int seatsPerRow, int[] blocks, int[] exitRows, String planeType) {
             this.length = length;
@@ -149,4 +149,7 @@ public class Plane {
         public int getBusinessRows() {
             return businessRows;
         }
+
+        public int[] getBlocks(){return blocks;}
+        public int[] getExits(){return exitRows;}
 }

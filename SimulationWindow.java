@@ -6,7 +6,7 @@ public class SimulationWindow {
 
     Plane plane;
     PlaneView planeView = new PlaneView();
-    JTextArea textBox = new JTextArea();
+    SimulationControls simulationControls = new SimulationControls();
 
     public SimulationWindow(Plane plane) {
         this.plane = plane;
@@ -26,14 +26,10 @@ private void GUI() {
     fileMenu.add(exitItem);
     menuBar.add(fileMenu);
     frame.setJMenuBar(menuBar);
+ 
+    simulationControls.populate(plane);
 
-    JPanel rightPanel = new JPanel();
-    rightPanel.setBackground(Color.LIGHT_GRAY);
-    rightPanel.add(new JLabel("Simulation Controls"));
-
-    rightPanel.add(textBox);
-
-    JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, planeView, rightPanel);
+    JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, planeView, simulationControls);
     splitPane.setResizeWeight(0.7);
     splitPane.setDividerLocation((int)(frame.getWidth() * 0.5));
     splitPane.setContinuousLayout(true);
@@ -51,13 +47,25 @@ private void GUI() {
         planeView.repaint();
     }
 
+public void replacePlane(Plane plane){ // bad naming lol
+        this.plane = plane;
+        SwingUtilities.invokeLater(() -> { // was having issues with sync
+            planeView.removeAll();
+            planeView.setPlane(plane);
+            planeView.revalidate();
+            planeView.repaint();
+            simulationControls.populate(plane); 
+        }); 
+    }
+
     public void refreshPlaneView(int[] groups) {
         planeView.updateButtons(groups);
         planeView.repaint();
     }
 
-    public void updateText(String text){
-        textBox = new JTextArea(text);
+    public void setPlane(Plane plane){
+        planeView.setPlane(plane);
+        simulationControls.populate(plane);
     }
 }
 

@@ -1,3 +1,4 @@
+import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -16,21 +17,42 @@ public class main {
     private static Simulation[] allSimulations;
     public static Passenger[] globalPassengers;
     public static Plane globalPlane;
+    public static SimulationWindow simulationWindow;
 
     public static void main(String[] args) {
-        Plane plane = new Plane(10, 4, 6, 4, new int[]{2, 2}, new int[]{0, 7}, "Boeing 737");
-        globalPlane = plane;
-        System.out.println(plane.getCapacity());
+        Plane plane = parameters.plane;
+        simulationWindow = new SimulationWindow(parameters.plane); // using default plane
 
-
-        final int NUMBER_SIMULATIONS = 1000;
-        final int NUMBER_GENERATIONS = 500;
-        SimulationWindow simulationWindow = new SimulationWindow(plane);
-        
         Passenger[] allPassengers = new Passenger[plane.getCapacity()];
         generatePassengerData(plane, allPassengers);
         globalPassengers = allPassengers;
         simulationWindow.setPlaneView(plane, allPassengers);
+
+        while (true) {
+            while (!parameters.STARTED) {
+                if (parameters.REDRAW){plane = parameters.plane; simulationWindow.replacePlane(plane);}
+                try {Thread.sleep(10);} catch (InterruptedException e){}
+            }
+            parameters.END = false;
+            plane = parameters.plane;
+            globalPlane = plane;
+            
+            allPassengers = new Passenger[plane.getCapacity()];
+            generatePassengerData(plane, allPassengers);
+            globalPassengers = allPassengers;
+            simulationWindow.setPlaneView(plane, allPassengers);
+
+            System.out.println(plane.getCapacity());
+            run();
+
+        }
+    }
+
+    public static void run(){
+
+        Plane plane = globalPlane;
+        int NUMBER_SIMULATIONS = parameters.NUMBER_SIMULATIONS;
+        int NUMBER_GENERATIONS = parameters.NUMBER_GENERATIONS;
 
         allSimulations = new Simulation[NUMBER_SIMULATIONS];
         ArrayList<Simulation> goodSimulations = new ArrayList<>();
@@ -40,8 +62,8 @@ public class main {
         int staticGenerations = 0;
         for (int i = 0; i < NUMBER_SIMULATIONS; i++) {
              //(int) Math.abs(RandomProvider.rand.nextGaussian()) * 3 + 3
-            allSimulations[i] = new Simulation(allPassengers, plane, parameters.MAX_GROUPS);
-             final int idx = i;
+            allSimulations[i] = new Simulation(globalPassengers, plane, parameters.MAX_GROUPS);
+            final int idx = i;
             futures.add(executor.submit(() -> allSimulations[idx].simulateBoardingTime()));
         }
         for (Future<Integer> future: futures){
@@ -51,6 +73,9 @@ public class main {
 
         // Highest level simulation control
         for (int i = 0; i < NUMBER_GENERATIONS; i++){
+            if (parameters.END){break;}
+            while (parameters.PAUSED) {try {Thread.sleep(20);} catch (InterruptedException e) {}}
+            parameters.PAUSED = false;
             allSimulations = evolution(allSimulations);
 
             Simulation w = findQuickest(allSimulations)[0];
@@ -67,8 +92,10 @@ public class main {
 /*             try {Thread.sleep(0);} catch (Exception e){} */
             System.out.println("Generation " + i + " complete. Current winning time: " + findQuickest(allSimulations)[0].getDuration() + ". Static gens: " + staticGenerations + ". New sims: " + parameters.NEW_SIMULATIONS + ". Mutation rate: " + parameters.MUTATION);
             System.out.println("Simulation random penalty: " + w.randomPenalty);
+            simulationWindow.simulationControls.updateGeneration(i, findQuickest(allSimulations)[0].getDuration(), staticGenerations);
 
-            if (staticGenerations >= 50){
+            if (staticGenerations >= 50 || parameters.SKIP){
+                parameters.SKIP = false;
                 goodSimulations.add(findQuickest(allSimulations)[0]);
                 // if stuff really isn't changing, keep the winner and generate a whole new batch
                 allSimulations = new Simulation[NUMBER_SIMULATIONS];
@@ -76,7 +103,7 @@ public class main {
                 currentDuration = 0;
                 futures.clear();
                 for (int j = 0; j < NUMBER_SIMULATIONS; j++) {
-                    allSimulations[j] = new Simulation(allPassengers, plane, parameters.MAX_GROUPS);
+                    allSimulations[j] = new Simulation(globalPassengers, plane, parameters.MAX_GROUPS);
                     final int k = j;
                     futures.add(executor.submit(() -> allSimulations[k].simulateBoardingTime()));
                 }
@@ -89,11 +116,12 @@ public class main {
         }
 
 
-        executor.shutdown();
-
         Simulation winner = findQuickest(goodSimulations.toArray(new Simulation[0]))[0];
         simulationWindow.refreshPlaneView(winner.getBoardingInts());  
-        System.out.println(winner.getBoardingInts());
+
+        parameters.END = true;
+        parameters.STARTED = false;
+        
     }
 
     static void generatePassengerData(Plane plane, Passenger[] allPassengers) {
