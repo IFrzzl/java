@@ -7,12 +7,22 @@ public class Simulation {
     Passenger[]allPassengers;
     Plane plane;
     int numberGroups;
+
+    int randomPenalty = 0;
+    int[] adjacentSameGroupSeats;
+    double[] avgDistance;
+    double[] sdDistance;
+
     public Simulation(Passenger[]allPassengers, Plane plane, int numberGroups) {
         this.allPassengers = allPassengers;
         this.plane = plane;
         this.numberGroups = numberGroups;
         this.length = allPassengers.length;
         generateInitialGroups();
+
+        adjacentSameGroupSeats = new int[numberGroups];
+        avgDistance = new double[numberGroups];
+        sdDistance = new double[numberGroups];
 
 
  /* boardingInts = new int[]{
@@ -220,16 +230,109 @@ public class Simulation {
                         Event boardingEvent = new Event(EventTypes.WALK, time + 2, boardingQueue.poll(), queuePosition);
                         eventsQueue.add(boardingEvent);
                     }
-                } */
+                } */ 
             }
             
 
             if (time>ticksElapsed) {ticksElapsed = time;}
         }
 
-        // default return
+        // we want to encourage orderly looking groups that are feasible to board together
+        double randomPenalty = randomPenalty(boardingGroups);
+        this.randomPenalty = (int) randomPenalty;
         this.duration = (int) ticksElapsed;
-        return duration;
+        // default return
+        return (int) ticksElapsed + 3 * (int) randomPenalty;
+    }
+
+    public double randomPenalty(int[][] boardingGroups){
+
+        double[] groupFitnesses = new double[numberGroups];
+        for (int i = 0; i<boardingGroups.length; i++){
+            int adjacentSameGroupSeats = 0;
+            ArrayList<Double> distances = new ArrayList<>();
+            for (int j = 0; j<boardingGroups[i].length; j++){
+                int s1 = boardingGroups[i][j];
+                int x = s1 % plane.getWidth();
+                int y = s1 / plane.getWidth();
+                Boolean adjacentSameGroup = false;
+                // check if seat in business
+                if (y>0){
+                    if (s1 < plane.getBusinessRows() * plane.getSetsperBusinessRow()){
+                        x = s1 % plane.getSetsperBusinessRow();
+                        y = s1 / plane.getSetsperBusinessRow();
+                        if (y>0){
+                            int frontSeat = s1 - plane.getSetsperBusinessRow();
+                            if (boardingInts[frontSeat] == boardingInts[s1]){
+                                adjacentSameGroup = true;
+                            }
+                        }
+                    } else {
+                        int frontSeat = s1 - plane.getWidth();
+                        if (boardingInts[frontSeat] == boardingInts[s1]){
+                            adjacentSameGroup = true;
+                        }
+                    }
+                }
+                // number of seats with adjacent same group seats
+                if (x>1){
+                    int leftSeat = s1 -1;
+                    if (boardingInts[leftSeat] == boardingInts[s1]){
+                        adjacentSameGroup = true;
+                    }
+                } 
+                
+                if (adjacentSameGroup){
+                    adjacentSameGroupSeats++;
+                }
+                
+                for (int k = j+1; k<boardingGroups[i].length; k++){
+                    
+                    int s2 = boardingGroups[i][k];
+                    int x2, y2;
+                    if (s1 < plane.getBusinessRows() * plane.getSetsperBusinessRow()){
+                        x2 = s2 % plane.getSetsperBusinessRow();
+                        y2 = s2 / plane.getSetsperBusinessRow();
+                    }
+                    else {
+                        x2 = s2 % plane.getWidth();
+                        y2 = s2 / plane.getWidth();
+                    }
+                    double distance = Math.sqrt(Math.pow(x2 - x, 2) + Math.pow(y2 - y, 2));
+                    distances.add(distance);
+                    // 
+                }
+        }
+
+            double avgDistance = 0;
+            for (Double d: distances){
+                avgDistance += d;
+            }
+
+            avgDistance = avgDistance / distances.size();
+            // now calculte s.d.
+            double differenceTotal = 0;
+            for (Double d: distances){
+                differenceTotal += Math.pow(d - avgDistance, 2);
+            }
+            double sd = Math.sqrt(differenceTotal / distances.size());
+            // we want a low penalty is a) high number of adjacent group seats (clusters) b) low s.d. of distances or c) low average distance
+            // weighting is adjacents > average size > s.d.
+            // 
+        
+            double penalty = (adjacentSameGroupSeats * 0) + (0 / (sd)) + (500 / (avgDistance));
+            this.adjacentSameGroupSeats[i] = adjacentSameGroupSeats;
+            this.avgDistance[i] = avgDistance;
+            this.sdDistance[i] = sd;
+            groupFitnesses[i] = (int) penalty;
+        }
+
+        // we now have a penalty for each group, average them
+        double totalPenalty = 0;
+        for (double p: groupFitnesses){
+            totalPenalty += p;
+        }
+        return totalPenalty / groupFitnesses.length;
     }
 
     public int getDuration(){

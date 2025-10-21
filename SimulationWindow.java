@@ -6,6 +6,7 @@ public class SimulationWindow {
 
     Plane plane;
     PlaneView planeView = new PlaneView();
+    JTextArea textBox = new JTextArea();
 
     public SimulationWindow(Plane plane) {
         this.plane = plane;
@@ -30,6 +31,8 @@ private void GUI() {
     rightPanel.setBackground(Color.LIGHT_GRAY);
     rightPanel.add(new JLabel("Simulation Controls"));
 
+    rightPanel.add(textBox);
+
     JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, planeView, rightPanel);
     splitPane.setResizeWeight(0.7);
     splitPane.setDividerLocation((int)(frame.getWidth() * 0.5));
@@ -38,7 +41,7 @@ private void GUI() {
     frame.getContentPane().add(splitPane, BorderLayout.CENTER);
     frame.setLocationRelativeTo(null);
     frame.setVisible(true);
-}
+    }
 
     public void setPlaneView(Plane plane, Passenger[] allPassengers) {
         this.plane = plane;
@@ -51,6 +54,10 @@ private void GUI() {
     public void refreshPlaneView(int[] groups) {
         planeView.updateButtons(groups);
         planeView.repaint();
+    }
+
+    public void updateText(String text){
+        textBox = new JTextArea(text);
     }
 }
 

@@ -6,6 +6,7 @@ public class Plane {
         int capacity;
 
         int businessRows;
+        int seatsperBusinessRow;;
         int economyRows;
         int[] exitRows;
 
@@ -20,6 +21,7 @@ public class Plane {
             this.businessRows = businessRows;
             this.economyRows = economyRows;
             this.width = seatsPerRow;
+            seatsperBusinessRow = seatsPerRow;
             this.blocks = blocks;
             this.exitRows = exitRows;
             this.aisles = blocks.length - 1;
@@ -68,22 +70,29 @@ public class Plane {
 
             }
 
-            for (int i = 0; i < businessRows; i++) {
-                for (int k = 0; k < blocks.length; k++) {
-                    // for each block, find the index middle seats, adding seats from the previous blocks
-                    if (blocks[k] > 2) {
-                        if (blocks[k] % 2 == 0) {
+
+            for (int k = 0; k < blocks.length; k++) {
+
+                // for each block, find the index middle seats, adding seats from the previous blocks
+                if (blocks[k] > 2) {
+                    if (blocks[k] % 2 == 0) {
+                        for (int i = 0; i < businessRows; i++) {
                             // even number of seats, set the two middle seats to OTHER
                             // realistically a row won't be wider than 6 seats, so this is fine
                             int middleSeat1 = seatsBeforeIndex(k, blocks[k] / 2 - 1);
                             int middleSeat2 = seatsBeforeIndex(k, blocks[k] / 2);
                             seatingChart[i][middleSeat1].setStatus(SeatStatus.OTHER);
                             seatingChart[i][middleSeat2].setStatus(SeatStatus.OTHER);
-                        } else {
+
+                        }
+                        seatsperBusinessRow -= 2;
+                    } else {
+                        for (int i = 0; i < businessRows; i++) {
                             // odd number of seats, set the middle seat to OTHER
                             int middleSeat = seatsBeforeIndex(k, blocks[k] / 2);
                             seatingChart[i][middleSeat].setStatus(SeatStatus.OTHER);
                         }
+                        seatsperBusinessRow -= 1;
                     }
                 }
             }
@@ -131,5 +140,13 @@ public class Plane {
 
         public String getType(){
             return planeType;
+        }
+
+        public int getSetsperBusinessRow() {
+            return seatsperBusinessRow;
+        }
+
+        public int getBusinessRows() {
+            return businessRows;
         }
 }

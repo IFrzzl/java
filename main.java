@@ -18,13 +18,13 @@ public class main {
     public static Plane globalPlane;
 
     public static void main(String[] args) {
-        Plane plane = new Plane(20, 6, 14, 6, new int[]{3, 3}, new int[]{0, 7}, "Boeing 737");
+        Plane plane = new Plane(10, 4, 6, 4, new int[]{2, 2}, new int[]{0, 7}, "Boeing 737");
         globalPlane = plane;
         System.out.println(plane.getCapacity());
 
 
-        final int NUMBER_SIMULATIONS = 5000;
-        final int NUMBER_GENERATIONS = 10000;
+        final int NUMBER_SIMULATIONS = 1000;
+        final int NUMBER_GENERATIONS = 500;
         SimulationWindow simulationWindow = new SimulationWindow(plane);
         
         Passenger[] allPassengers = new Passenger[plane.getCapacity()];
@@ -33,6 +33,7 @@ public class main {
         simulationWindow.setPlaneView(plane, allPassengers);
 
         allSimulations = new Simulation[NUMBER_SIMULATIONS];
+        ArrayList<Simulation> goodSimulations = new ArrayList<>();
 
         List<Future<Integer>> futures = new ArrayList<>();
         int currentDuration = 0;
@@ -59,22 +60,42 @@ public class main {
                     currentDuration = w.getDuration();
                     staticGenerations = 0;
                 }
-            parameters.NEW_SIMULATIONS = Math.min(Math.max(0.1, (staticGenerations / 10)) * 0.1, 0.5);
-            parameters.MUTATION = Math.min(0.4, Math.max(0.05, 0.05*staticGenerations));
+            parameters.NEW_SIMULATIONS = Math.min(Math.max(0.1, staticGenerations / 8) * 1, 0.3);
+            parameters.MUTATION = Math.min(0.15, Math.max(0.1, 0.05*staticGenerations));
 
             simulationWindow.refreshPlaneView(w.getBoardingInts());
 /*             try {Thread.sleep(0);} catch (Exception e){} */
-            System.out.println("Generation " + i + " complete. Current winning time: " + findQuickest(allSimulations)[0].getDuration());
+            System.out.println("Generation " + i + " complete. Current winning time: " + findQuickest(allSimulations)[0].getDuration() + ". Static gens: " + staticGenerations + ". New sims: " + parameters.NEW_SIMULATIONS + ". Mutation rate: " + parameters.MUTATION);
+            System.out.println("Simulation random penalty: " + w.randomPenalty);
+
+            if (staticGenerations >= 50){
+                goodSimulations.add(findQuickest(allSimulations)[0]);
+                // if stuff really isn't changing, keep the winner and generate a whole new batch
+                allSimulations = new Simulation[NUMBER_SIMULATIONS];
+                staticGenerations = 0;
+                currentDuration = 0;
+                futures.clear();
+                for (int j = 0; j < NUMBER_SIMULATIONS; j++) {
+                    allSimulations[j] = new Simulation(allPassengers, plane, parameters.MAX_GROUPS);
+                    final int k = j;
+                    futures.add(executor.submit(() -> allSimulations[k].simulateBoardingTime()));
+                }
+                // need to make sure these are retreived or there's a weird "violates contract" error
+                for (Future<Integer> future: futures){
+                    try {future.get();
+                    } catch (Exception e) { e.printStackTrace(); }
+                } 
+            }  
         }
 
 
         executor.shutdown();
 
-        Simulation winner = findQuickest(allSimulations)[0];
+        Simulation winner = findQuickest(goodSimulations.toArray(new Simulation[0]))[0];
         simulationWindow.refreshPlaneView(winner.getBoardingInts());  
         System.out.println(winner.getBoardingInts());
-
     }
+
     static void generatePassengerData(Plane plane, Passenger[] allPassengers) {
         
         // RANDOM ATTRIBUTES FOR EACH PASSENGER
@@ -139,8 +160,6 @@ public class main {
         }
     }
 
-
-
     //Genetic algorithm stuff
 
     static Simulation[] evolution(Simulation[] simulations){
@@ -193,14 +212,14 @@ public class main {
             }
         }
 
-        // sBT() 
+        // simulating boarding times
         List<Future<Integer>> futures = new ArrayList<>();
         for (Simulation simulation : newPopulation) {
-            futures.add(executor.submit(simulation::simulateBoardingTime)); // call 
+            futures.add(executor.submit(simulation::simulateBoardingTime)); 
         }
         for (Future<Integer> future: futures) {
             try {
-                int duration = future.get();
+                future.get();
             } catch (Exception e) {
                 e.printStackTrace();
             }
