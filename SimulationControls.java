@@ -18,7 +18,7 @@ public class SimulationControls extends JPanel {
         add(new JLabel("Simulation Controls"));
 
         JPanel mainInfo = new JPanel(new GridLayout(4, 1));
-        generation = new JTextArea("Current generation: 0 / " + parameters.NUMBER_GENERATIONS + "\nBest time score: 0");
+        generation = new JTextArea("Current generation: 0 / " + parameters.NUMBER_GENERATIONS + "\nBest time score: 0\n\n\n");
         mainInfo.add(generation);
         mainInfo.add(new JLabel("Speed"));
         JSlider speed = new JSlider(JSlider.HORIZONTAL, 0, 100, 50);
@@ -72,7 +72,7 @@ public class SimulationControls extends JPanel {
         JPanel bRow = new JPanel(new FlowLayout());
 
         widthRow.add(new JLabel("Plane width: "));
-        JSlider width = new JSlider(JSlider.HORIZONTAL, 2, 14, plane.getWidth());
+        JSlider width = new JSlider(JSlider.HORIZONTAL, 2, 14, plane.getWidth()-plane.getAisles().length);
         width.setMinorTickSpacing(4);
         width.setMajorTickSpacing(4);
         width.setPaintLabels(true);
@@ -81,18 +81,20 @@ public class SimulationControls extends JPanel {
         JTextArea widthReading = new JTextArea("" + width.getValue());
         width.addChangeListener(e -> {
             widthReading.setText("" + width.getValue());
+            if (!width.getValueIsAdjusting()){
                 if (!parameters.STARTED){
                     parameters.plane = new Plane(plane.getLength(), plane.getBusinessRows(), plane.getLength() - plane.getBusinessRows(), 
                 width.getValue(), blocks[width.getValue()], plane.getExits(), "Custom aircraft");
                     parameters.REDRAW = true;
                 }
+            }
         });
         widthReading.setMaximumSize(widthReading.getPreferredSize());
         widthRow.add(width);
         widthRow.add(widthReading);
 
         lengthRow.add(new JLabel("Plane length: "));
-        JSlider length = new JSlider(JSlider.HORIZONTAL, 8, 40, plane.getLength());
+        JSlider length = new JSlider(JSlider.HORIZONTAL, 8, 32, plane.getLength());
         length.setMajorTickSpacing(8);
         length.setMinorTickSpacing(8);
         length.setPaintLabels(true);
@@ -101,11 +103,13 @@ public class SimulationControls extends JPanel {
         JTextArea lengthReading = new JTextArea("" + length.getValue());
         length.addChangeListener(e -> {
             lengthReading.setText("" + length.getValue());
+            if (!length.getValueIsAdjusting()){
             if (!parameters.STARTED){
                 parameters.plane = new Plane(length.getValue(), plane.getBusinessRows(), plane.getLength() - plane.getBusinessRows(), 
-                plane.getWidth(), plane.getBlocks(), new int[]{0, Math.max(0, length.getValue() - 1)}, "Custom aircraft");
+                plane.getWidth()-plane.getAisles().length, plane.getBlocks(), new int[]{0, Math.max(0, length.getValue() - 1)}, "Custom aircraft");
                 parameters.REDRAW = true;
             }
+        }
         });
         lengthReading.setMaximumSize(lengthReading.getPreferredSize());
         lengthRow.add(length);
@@ -130,7 +134,7 @@ public class SimulationControls extends JPanel {
                         businessRowsField.setBackground(Color.WHITE);
                         businessRowsField.setToolTipText("Number of business rows (min: 0; max: plane length)");
                         if (!parameters.STARTED){
-                            parameters.plane = new Plane(plane.getLength(), val, plane.getLength() - val, plane.getWidth(), plane.getBlocks(), plane.getExits(), plane.getType());
+                            parameters.plane = new Plane(plane.getLength(), val, plane.getLength() - val, plane.getWidth()-plane.getAisles().length, plane.getBlocks(), plane.getExits(), plane.getType());
                             parameters.REDRAW = true;
                         }
                     }
@@ -167,8 +171,12 @@ public class SimulationControls extends JPanel {
              exitRows, "Custom Plane");
             parameters.END = true;
             parameters.STARTED = true;
+            if (pauseButton.getText() == "Play!"){
+                pauseButton.setText("Pause");
+            }
         });
         bottomSpacer.add(startButton);
+        bottomSpacer.setMaximumSize(bottomSpacer.getPreferredSize());
         add(bottomSpacer);
 
     }

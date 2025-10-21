@@ -33,7 +33,7 @@ class PlaneView extends JPanel {
         this.rows = plane.getRows();
         this.seatingChart = plane.getSeatingChart();
         // cols must match seatingChart columns (includes aisles)
-        this.cols = (seatingChart != null && seatingChart.length > 0) ? seatingChart[0].length : plane.getWidth();
+        this.cols = plane.getWidth();
 
         final int buttonSize = parameters.BUTTON_SIZE;
         final int gap = parameters.BUTTON_GAP;
@@ -65,6 +65,7 @@ class PlaneView extends JPanel {
 
     private void createSeatButtons(int buttonSize) {
         // create lightweight cells once
+        System.out.println("" + rows + " " +  cols);
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
                 SeatCell cell = new SeatCell(buttonSize);

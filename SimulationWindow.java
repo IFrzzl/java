@@ -17,7 +17,7 @@ public class SimulationWindow {
 private void GUI() {
     JFrame frame = new JFrame("Simulation Window");
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    frame.setSize(1000, 700);
+    frame.setSize(1500, 900);
 
     JMenuBar menuBar = new JMenuBar();
     JMenu fileMenu = new JMenu("File");

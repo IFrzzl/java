@@ -30,7 +30,7 @@ public class main {
 
         while (true) {
             while (!parameters.STARTED) {
-                if (parameters.REDRAW){plane = parameters.plane; simulationWindow.replacePlane(plane);}
+                if (parameters.REDRAW){plane = parameters.plane; simulationWindow.replacePlane(plane); parameters.REDRAW = false;}
                 try {Thread.sleep(10);} catch (InterruptedException e){}
             }
             parameters.END = false;
