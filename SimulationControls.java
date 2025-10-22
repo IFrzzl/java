@@ -47,7 +47,7 @@ public class SimulationControls extends JPanel {
 
     public void populate(Plane plane){
         removeAll();
-
+        this.plane = plane;
 
         JPanel content = new JPanel(new GridLayout(4, 2));
         content.setBackground(Color.LIGHT_GRAY);
@@ -91,18 +91,6 @@ public class SimulationControls extends JPanel {
         JButton skipButton = new JButton("New gene pool");
         JButton endButton = new JButton("End round");
 
-        pauseButton.addActionListener(e -> {
-            if (!parameters.STARTED){parameters.STARTED = true; pauseButton.setText("Pause");}
-            else if (parameters.PAUSED) {
-                pauseButton.setText("Pause");
-                parameters.PAUSED = false;
-
-            } else {
-                pauseButton.setText("Play!");
-                parameters.PAUSED = true;
-            }
-
-        });
         skipButton.addActionListener(e -> parameters.SKIP = true);
         endButton.addActionListener(e -> {parameters.END = true; parameters.STARTED = false;});
         buttonsPanel.add(pauseButton);
@@ -534,12 +522,27 @@ public class SimulationControls extends JPanel {
             }
         };
         startButton.addActionListener(e -> startThatThang.accept(69, 420)); // look i just needed it to work ok
-        pauseButton.addActionListener(e -> {if (!parameters.STARTED) startThatThang.accept(67, 41);});
 
+
+        pauseButton.addActionListener(e -> {
+            if (!parameters.STARTED){startThatThang.accept(67, 41);}
+            else if (parameters.PAUSED) {
+                pauseButton.setText("Pause");
+                parameters.PAUSED = false;
+
+            } else {
+                pauseButton.setText("Play!");
+                parameters.PAUSED = true;
+            }
+
+        });
         JButton resetButton = new JButton("Reset to default");
         resetButton.addActionListener(e -> {
-            reset();
-            repaint();
+            pauseButton.setText("Play!");
+            parameters.PAUSED = false;
+            parameters.END = true;
+            parameters.RESET = true;
+            parameters.REDRAW = true;
         });
         
         JPanel buttonPanel = new JPanel(new GridLayout(1, 2));
@@ -579,9 +582,9 @@ public class SimulationControls extends JPanel {
         generation.setText("\n    Current generation: " + gens + " / " + parameters.NUMBER_GENERATIONS + 
             "\n    Best time score: " + time + "\n    Static generations: " + stats);
         if (gens == parameters.NUMBER_GENERATIONS){
-            generation.setText("\n    Simulation finished! Showing winning simulation." + "\n" + generation.getText() + "\n    Total simulations trialled: "
-            + parameters.NUMBER_GENERATIONS*parameters.NUMBER_SIMULATIONS + "in " 
-            + String.format("%02d:%02d.%03d", timeElapsed/(1000000*60), (timeElapsed/1000000)%60, timeElapsed%1000000));
+            generation.setText("\n    Simulation finished! Showing winning simulation." + "\n" + generation.getText() + "\n    Trialled: "
+            + parameters.NUMBER_GENERATIONS*parameters.NUMBER_SIMULATIONS + " simulations in " 
+            + String.format("%02d:%02d.%03d", timeElapsed/(1000000000*60), (timeElapsed/1000000000)%60, timeElapsed%1000000000));
         }
     }
 
@@ -652,40 +655,43 @@ public class SimulationControls extends JPanel {
         return holder;
     }
 
-    public void reset(){ // think there was a way to reinitialise static constructors, or there's a way to do it with factories, but meh
+    public void reset(){ // reset parameters to defaults and refresh UI
+        // parameter defaults (same as before)
         parameters.NUMBER_GENERATIONS = 1000;
         parameters.NUMBER_SIMULATIONS = 500;
-        parameters.plane = 
-        new Plane(20, 6, 14, 6, new int[]{3, 3}, new int[]{0, 7}, "Boeing 737");
-        // default plane
-
+        parameters.plane =
+            new Plane(20, 6, 14, 6, new int[]{3, 3}, new int[]{0, 7}, "Boeing 737");
         parameters.MAX_GROUPS = 4;
-
-        // parameters for passenger generation probabilities
         parameters.PROBABILITY_DISABLED = 0.03;
         parameters.PROBABILITY_FAMILIES = 0.20;
         parameters.PROBABILITY_OLD = 0.10;
         parameters.PROBABILITY_CHILDREN = 0.10;
         parameters.PROBABILITY_BAGS = 0.80;
-
-        // ga parameter parameters
         parameters.ELITISM = 0.03;
         parameters.TOURNAMENT_SIZE = 3;
         parameters.SELECTION_POOL = 0.5;
         parameters.MUTATION = 0.2;
         parameters.NEW_SIMULATIONS = 0.3;
-        parameters.SPLIT_PENALTY = 700; //ticks
-
-        // big flags
+        parameters.SPLIT_PENALTY = 700;
         parameters.PAUSED = false;
         parameters.SKIP = false;
         parameters.END = false;
         parameters.STARTED = false;
         parameters.REDRAW = false;
-
         parameters.delay = 0.0;
 
-        repaint();
+        // update UI on the EDT so components are manipulated safely
+        SwingUtilities.invokeLater(() -> {
+            if (this.plane != null) {
+            
+                populate(parameters.plane);
+            } else {
+                refreshGAControls();
+                updateGeneration(0, 1000, 0, 0);
+                revalidate();
+                repaint();
+            }
+        });
     }
 }
 

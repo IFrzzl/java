@@ -14,7 +14,7 @@ public class parameters {
 
     //boarding constants (not changing these)
 
-    public static int MAX_GROUPS = 4;
+    public static int MAX_GROUPS = 6;
     public static final int GROUP_STAGGER = 600;
     public static final int PASSENGER_STAGGER = 3;
     public static final int DEFAULT_WALKING_SPEED = 2;
@@ -46,6 +46,7 @@ public class parameters {
     public static Boolean END = false;
     public static Boolean STARTED = false;
     public static Boolean REDRAW = false;
+    public static Boolean RESET = false;
 
     public static double delay = 0.0;
     static {

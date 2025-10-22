@@ -32,7 +32,19 @@ public class main {
 
         while (true) {
             while (!parameters.STARTED) {
-                if (parameters.REDRAW){plane = parameters.plane; simulationWindow.replacePlane(plane); parameters.REDRAW = false;}
+                if (parameters.REDRAW) {
+                    plane = parameters.plane;
+                    simulationWindow.replacePlane(plane);
+                    parameters.REDRAW = false;
+                } else if (parameters.RESET) {
+                    // bring whole program back to start state using the existing controls instance
+                    parameters.RESET = false;
+                    simulationWindow.simulationControls.reset();           // reset parameter values and UI
+                    simulationWindow.simulationControls.refreshGAControls(); // update GA sliders
+                    // ensure plane view matches reset plane
+                    plane = parameters.plane;
+                    simulationWindow.replacePlane(plane);
+                }
                 try {Thread.sleep(10);} catch (InterruptedException e){}
             }
             startTime = System.nanoTime();
@@ -76,8 +88,11 @@ public class main {
 
         // Highest level simulation control
         for (int i = 0; i < NUMBER_GENERATIONS; i++){
-            if (parameters.END){return;}
-            while (parameters.PAUSED) {try {Thread.sleep(20);} catch (InterruptedException e) {}}
+            if (parameters.END || parameters.RESET){return;}
+
+            while (parameters.PAUSED) {try {
+                if (parameters.END || parameters.RESET){return;}
+                Thread.sleep(20);} catch (InterruptedException e) {}}
             parameters.PAUSED = false;
             allSimulations = evolution(allSimulations);
 
