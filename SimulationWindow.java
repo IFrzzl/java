@@ -18,6 +18,7 @@ private void GUI() {
     JFrame frame = new JFrame("Simulation Window");
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     frame.setSize(1500, 900);
+    frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
 
     JMenuBar menuBar = new JMenuBar();
     JMenu fileMenu = new JMenu("File");
@@ -27,9 +28,13 @@ private void GUI() {
     menuBar.add(fileMenu);
     frame.setJMenuBar(menuBar);
  
+    JPanel rightframe = new JPanel();
+    rightframe.setLayout(new BoxLayout(rightframe, BoxLayout.Y_AXIS));
+    rightframe.add(new JLabel("Simulation Controls"));
     simulationControls.populate(plane);
+    rightframe.add(simulationControls);
 
-    JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, planeView, simulationControls);
+    JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, planeView, rightframe);
     splitPane.setResizeWeight(0.7);
     splitPane.setDividerLocation((int)(frame.getWidth() * 0.5));
     splitPane.setContinuousLayout(true);

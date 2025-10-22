@@ -19,6 +19,8 @@ public class main {
     public static Plane globalPlane;
     public static SimulationWindow simulationWindow;
 
+    public static long startTime = 0;
+
     public static void main(String[] args) {
         Plane plane = parameters.plane;
         simulationWindow = new SimulationWindow(parameters.plane); // using default plane
@@ -33,6 +35,7 @@ public class main {
                 if (parameters.REDRAW){plane = parameters.plane; simulationWindow.replacePlane(plane); parameters.REDRAW = false;}
                 try {Thread.sleep(10);} catch (InterruptedException e){}
             }
+            startTime = System.nanoTime();
             parameters.END = false;
             plane = parameters.plane;
             globalPlane = plane;
@@ -73,10 +76,12 @@ public class main {
 
         // Highest level simulation control
         for (int i = 0; i < NUMBER_GENERATIONS; i++){
-            if (parameters.END){break;}
+            if (parameters.END){return;}
             while (parameters.PAUSED) {try {Thread.sleep(20);} catch (InterruptedException e) {}}
             parameters.PAUSED = false;
             allSimulations = evolution(allSimulations);
+
+            try {Thread.sleep((int) parameters.delay * 1000);} catch (Exception e){/*lol */}
 
             Simulation w = findQuickest(allSimulations)[0];
             if (w.getDuration() == currentDuration){
@@ -87,16 +92,19 @@ public class main {
                 }
             parameters.NEW_SIMULATIONS = Math.min(Math.max(0.1, staticGenerations / 8) * 1, 0.3);
             parameters.MUTATION = Math.min(0.15, Math.max(0.1, 0.05*staticGenerations));
+            if (i>10 && staticGenerations == 0){parameters.ELITISM += 0.01;} else {parameters.ELITISM = 0.03;}
 
             simulationWindow.refreshPlaneView(w.getBoardingInts());
 /*             try {Thread.sleep(0);} catch (Exception e){} */
-            System.out.println("Generation " + i + " complete. Current winning time: " + findQuickest(allSimulations)[0].getDuration() + ". Static gens: " + staticGenerations + ". New sims: " + parameters.NEW_SIMULATIONS + ". Mutation rate: " + parameters.MUTATION);
+            System.out.println("Generation " + i + " complete. Current winning time: " + w.getDuration() + ". Static gens: " + staticGenerations + ". New sims: " + parameters.NEW_SIMULATIONS + ". Mutation rate: " + parameters.MUTATION);
             System.out.println("Simulation random penalty: " + w.randomPenalty);
-            simulationWindow.simulationControls.updateGeneration(i, findQuickest(allSimulations)[0].getDuration(), staticGenerations);
+            System.out.println(parameters.MAX_GROUPS + "");
+            simulationWindow.simulationControls.updateGeneration(i, w.getDuration(), staticGenerations, startTime);
+            simulationWindow.simulationControls.refreshGAControls(); // sliders go brrr
 
             if (staticGenerations >= 50 || parameters.SKIP){
                 parameters.SKIP = false;
-                goodSimulations.add(findQuickest(allSimulations)[0]);
+                goodSimulations.add(w);
                 // if stuff really isn't changing, keep the winner and generate a whole new batch
                 allSimulations = new Simulation[NUMBER_SIMULATIONS];
                 staticGenerations = 0;
@@ -113,14 +121,18 @@ public class main {
                     } catch (Exception e) { e.printStackTrace(); }
                 } 
             }  
+
+            if (i == parameters.NUMBER_GENERATIONS -1){
+                goodSimulations.add(w);
+            }
         }
 
-
-        Simulation winner = findQuickest(goodSimulations.toArray(new Simulation[0]))[0];
+        Simulation winner = findQuickest((Simulation[]) goodSimulations.toArray())[0];
         simulationWindow.refreshPlaneView(winner.getBoardingInts());  
 
         parameters.END = true;
         parameters.STARTED = false;
+        simulationWindow.simulationControls.repaint();
         
     }
 
@@ -204,7 +216,7 @@ public class main {
         }
 
         for (int i = 0; i < newSimulations; i++) {      
-            Simulation newSim = new Simulation(globalPassengers, globalPlane, RandomProvider.rand.nextInt(3, parameters.MAX_GROUPS + 1));
+            Simulation newSim = new Simulation(globalPassengers, globalPlane, RandomProvider.rand.nextInt(2, parameters.MAX_GROUPS + 1));
             newPopulation[i] = newSim;
         }
 
@@ -310,7 +322,11 @@ public class main {
 
     static Simulation[] findQuickest(Simulation[] simulations) {
         Simulation[] sorted = Arrays.copyOf(simulations, simulations.length);
-        Arrays.sort(sorted, (s1, s2) -> Integer.compare(s1.getDuration(), s2.getDuration()));
+        if (parameters.WORSTFIND){
+            Arrays.sort(sorted, (s1, s2) -> Integer.compare(s2.getDuration(), s1.getDuration()));
+        } else {
+            Arrays.sort(sorted, (s1, s2) -> Integer.compare(s1.getDuration(), s2.getDuration()));
+        }
         return sorted;
     }
 }

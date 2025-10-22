@@ -1,4 +1,5 @@
 import java.util.*;
+import java.util.stream.*;
 
 public class Simulation {
     int duration = 69;
@@ -24,51 +25,6 @@ public class Simulation {
         avgDistance = new double[numberGroups];
         sdDistance = new double[numberGroups];
 
-
- /* boardingInts = new int[]{
-        12, 12, 12, 12,
-        12, 12, 12, 12,
-        11, 11, 11, 11,
-        11, 11, 11, 11,
-        10, 10, 10, 10,
-        10, 10, 10, 10,
-        9, 9, 9, 9, 9, 9,
-        9, 9, 9, 9, 9, 9,
-        8, 8, 8, 8, 8, 8,
-        8, 8, 8, 8, 8, 8,
-        7, 7, 7, 7, 7, 7,
-        6, 6, 6, 6, 6, 6,
-        5, 5, 5, 5, 5, 5,
-        5, 5, 5, 5, 5, 5,
-        4, 4, 4, 4, 4, 4, 
-        4, 4, 4, 4, 4, 4, 
-        3, 3, 3, 3, 3, 3, 
-        2, 2, 2, 2, 2, 2,
-        1, 1, 1, 1, 1, 1,
-        0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0,
- };  */
- 
-/*         boardingInts = new int[]{12, 12, 12, 12, 
-12, 12, 12, 12, 
-12, 12, 12, 12, 
-11, 11, 11, 11, 
-11, 11, 11, 11, 
-11, 11, 11, 11,
-7, 8, 9, 9, 8, 7,
-2, 4, 6, 6, 4, 2,
-0, 3, 5, 5, 3, 0,
-7, 8, 9, 9, 8, 7,
-2, 4, 6, 6, 4, 2,
-0, 3, 5, 5, 3, 0,
-7, 8, 9, 9, 8, 7,
-2, 4, 6, 6, 4, 2,
-0, 3, 5, 5, 3, 0,
-7, 8, 9, 9, 8, 7,
-0, 0, 0, 0, 0, 0,
-0, 0, 0, 0, 0, 0,
-0, 0, 0, 0, 0, 0,
-0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; */
     }
 
     public int[] getBoardingInts() {
@@ -219,18 +175,6 @@ public class Simulation {
                         eventsQueue.add(new Event(EventTypes.WALK, time + 2, firstPassenger, 0));
                     }
                 }
-/*                 if (boardingQueue.peek() == null){
-                    System.out.println("WHAT THE FUCK"); // flip out
-                } else {
-                    if (aisle.push(boardingQueue.peek()) != -1){
-                        int queuePosition = 0;
-    /*                     if (boardingQueue.peek().getBags()>1) {
-                            queuePosition = 1;
-                        } 
-                        Event boardingEvent = new Event(EventTypes.WALK, time + 2, boardingQueue.poll(), queuePosition);
-                        eventsQueue.add(boardingEvent);
-                    }
-                } */ 
             }
             
 
@@ -238,16 +182,17 @@ public class Simulation {
         }
 
         // we want to encourage orderly looking groups that are feasible to board together
-        double randomPenalty = randomPenalty(boardingGroups);
         this.randomPenalty = (int) randomPenalty;
         this.duration = (int) ticksElapsed;
         // default return
-        return (int) ticksElapsed + 3 * (int) randomPenalty;
+        // ha! i refuse to write another loop
+        return (int)(parameters.QUICKNESS * ticksElapsed
+         + 10*parameters.CLUSTERING*IntStream.of(this.adjacentSameGroupSeats).sum()
+         + 10*parameters.ORDERLINESS * (DoubleStream.of(this.avgDistance).sum() + DoubleStream.of(this.sdDistance).sum()));
     }
 
-    public double randomPenalty(int[][] boardingGroups){
+    public void randomPenalty(int[][] boardingGroups){
 
-        double[] groupFitnesses = new double[numberGroups];
         for (int i = 0; i<boardingGroups.length; i++){
             int adjacentSameGroupSeats = 0;
             ArrayList<Double> distances = new ArrayList<>();
@@ -316,23 +261,11 @@ public class Simulation {
                 differenceTotal += Math.pow(d - avgDistance, 2);
             }
             double sd = Math.sqrt(differenceTotal / distances.size());
-            // we want a low penalty is a) high number of adjacent group seats (clusters) b) low s.d. of distances or c) low average distance
-            // weighting is adjacents > average size > s.d.
-            // 
-        
-            double penalty = (adjacentSameGroupSeats * 0) + (0 / (sd)) + (500 / (avgDistance));
+
             this.adjacentSameGroupSeats[i] = adjacentSameGroupSeats;
             this.avgDistance[i] = avgDistance;
             this.sdDistance[i] = sd;
-            groupFitnesses[i] = (int) penalty;
         }
-
-        // we now have a penalty for each group, average them
-        double totalPenalty = 0;
-        for (double p: groupFitnesses){
-            totalPenalty += p;
-        }
-        return totalPenalty / groupFitnesses.length;
     }
 
     public int getDuration(){

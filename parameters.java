@@ -3,9 +3,16 @@ public class parameters {
     public static int NUMBER_GENERATIONS = 1000;
     public static int NUMBER_SIMULATIONS = 500;
     public static Plane plane = 
-    new Plane(10, 4, 6, 4, new int[]{2, 2}, new int[]{0, 7}, "Boeing 737");
-    // default plane
-    public static final Plane defaultPlane = new Plane(10, 4, 6, 4, new int[]{2, 2}, new int[]{0, 7}, "Boeing 737");
+    new Plane(20, 6, 14, 6, new int[]{3, 3}, new int[]{0, 7}, "Boeing 737");
+
+    // priorities
+
+    public static double QUICKNESS = 1.0;
+    public static double ORDERLINESS = 0.3;
+    public static double CLUSTERING = 0.3;
+    public static boolean WORSTFIND = false;
+
+    //boarding constants (not changing these)
 
     public static int MAX_GROUPS = 4;
     public static final int GROUP_STAGGER = 600;
@@ -39,7 +46,13 @@ public class parameters {
     public static Boolean END = false;
     public static Boolean STARTED = false;
     public static Boolean REDRAW = false;
+
+    public static double delay = 0.0;
     static {
 
+    }
+
+    public void reset(){
+        
     }
 }
