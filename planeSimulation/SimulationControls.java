@@ -287,6 +287,7 @@ public class SimulationControls extends JPanel {
         JPanel popSettings = new JPanel(new GridLayout(6, 1));
         popSettings.setBorder(new EmptyBorder(0, 15, 0, 15));
         JLabel top = new JLabel("<HTML><u>Population settings</u></HTML>");
+        allComponents.add(top);
         popSettings.add(top);
 
         Slider disabled = new Slider("% disabled", parameters.PROBABILITY_DISABLED * 100, 0, 100, true, true);
@@ -582,44 +583,6 @@ public class SimulationControls extends JPanel {
         }
     }
 
-    public JPanel slider(double defval, int min, int max, ChangeListener c, String s){
-        if (max == 0){ max = 100; }
-        JPanel holder = new JPanel(gbl);
-
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-
-        // label at column 0
-        gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0.0; gbc.fill = GridBagConstraints.NONE; gbc.anchor = GridBagConstraints.WEST;
-        JLabel label = new JLabel(s);
-        label.setPreferredSize(new Dimension(100, 30));
-        holder.add(label, gbc);
-        allComponents.add(label);
-
-        gbc.gridx = 1; gbc.gridy = 0; gbc.weightx = 1.0; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.anchor = GridBagConstraints.CENTER;
-        JSlider slider = new JSlider(JSlider.HORIZONTAL, min, max, (int) defval);
-        slider.setMajorTickSpacing((max-min)/4);
-        if (max-min <= 10) slider.setMinorTickSpacing(1);
-        slider.setPaintLabels(true);
-
-        Dimension pref = slider.getPreferredSize();
-        pref.width = 120;
-        slider.setPreferredSize(pref);
-        holder.add(slider, gbc);
-        allComponents.add(slider);
-
-        JLabel sliderReading = new JLabel("" + slider.getValue());
-        gbc.gridx = 2; gbc.gridy = 0; gbc.weightx = 0.0; gbc.fill = GridBagConstraints.NONE; gbc.anchor = GridBagConstraints.EAST;
-        if (c == null) {
-            slider.addChangeListener(e -> sliderReading.setText("" + slider.getValue()));
-        } else {
-            slider.addChangeListener(c);
-        }
-        holder.add(sliderReading, gbc);
-        allComponents.add(sliderReading);
-
-        return holder;
-    }
 
     public void reset(){ // reset parameters to defaults and refresh UI
         // parameter defaults (same as before)

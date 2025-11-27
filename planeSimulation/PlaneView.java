@@ -50,8 +50,8 @@ class PlaneView extends JPanel {
         this.passengers = passengers;
     }
 
-    public void setPlane(){
-        this.plane = parameters.plane;
+    public void setPlane(Plane plane){
+        if (plane == null) plane = parameters.plane;
         this.rows = plane.getLength();
         this.seatingChart = plane.getSeatingChart();
         // cols must match seatingChart columns (includes aisles)
@@ -116,14 +116,14 @@ class PlaneView extends JPanel {
         int width = (seatingChart.length > 0) ? seatingChart[0].length : cols;
         if (allButtons == null || allButtons.length < rows * width) return;
 
-        Color[] groupColours = {
-            new Color(255, 105, 120), new Color(255, 155, 70), new Color(255, 220, 80),
-            new Color(100, 255, 245), new Color(120, 230, 130), new Color(100, 190, 255),
-            new Color(155, 130, 255), new Color(255, 140, 230), new Color(255, 170, 210),
-            new Color(130, 255, 210), new Color(255, 195, 110), new Color(160, 220, 255),
-            new Color(100, 180, 255), new Color(255, 165, 165), new Color(185, 145, 255),
-            new Color(255, 120, 185),
-        };
+    Color[] groupColours = {
+        new Color(255,120,135), new Color(255,165,95),  new Color(255,235,120),
+        new Color(195,250,140), new Color(135,235,170), new Color(130,230,215),
+        new Color(145,195,255), new Color(165,160,255), new Color(185,140,255),
+        new Color(220,150,255), new Color(245,155,235), new Color(255,165,225),
+        new Color(255,175,205), new Color(255,190,215), new Color(255,205,225),
+        new Color(255,220,235)
+    };  
 
         for (Passenger passenger: passengers){
             Seat seat = passenger.getSeat();
