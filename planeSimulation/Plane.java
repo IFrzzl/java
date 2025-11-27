@@ -1,3 +1,4 @@
+package planeSimulation;
 public class Plane {
         private Seat[][] seatingChart;
 
@@ -7,25 +8,20 @@ public class Plane {
 
         private int businessRows;
         private int seatsperBusinessRow;;
-        private int economyRows;
         private int[] exitRows;
 
         private int[] blocks; // widths of each block e.g. [2, 4, 2]
         private int aisles;
         private int[] aisle_indexes;
 
-        private String planeType;
-
-    public Plane(int length, int businessRows, int economyRows, int seatsPerRow, int[] blocks, int[] exitRows, String planeType) {
+    public Plane(int length, int businessRows, int economyRows, int seatsPerRow, int[] blocks, int[] exitRows) {
             this.length = length;
             this.businessRows = businessRows;
-            this.economyRows = economyRows;
             this.width = seatsPerRow;
             seatsperBusinessRow = seatsPerRow;
             this.blocks = blocks;
             this.exitRows = exitRows;
             this.aisles = blocks.length - 1;
-            this.planeType = planeType;
             this.aisle_indexes = new int[blocks.length - 1];
             createSeatingChart();
             this.capacity = getCapacity();
@@ -126,9 +122,6 @@ public class Plane {
             }
             return res;
         }
-        public int getRows() {
-            return length;
-        }
 
         public int getWidth() {
             return width + aisles;
@@ -138,11 +131,7 @@ public class Plane {
             return aisle_indexes;
         }
 
-        public String getType(){
-            return planeType;
-        }
-
-        public int getSetsperBusinessRow() {
+        public int getSeatsperBusinessRow() {
             return seatsperBusinessRow;
         }
 

@@ -1,3 +1,4 @@
+package planeSimulation;
 public class AisleQueue {
     private int[] queue;
 

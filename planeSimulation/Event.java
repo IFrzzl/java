@@ -1,3 +1,4 @@
+package planeSimulation;
 public class Event {
     private EventTypes type;
     private double time;

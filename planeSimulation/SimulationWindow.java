@@ -1,3 +1,4 @@
+package planeSimulation;
 
 import javax.swing.*;
 import java.awt.*;
@@ -31,7 +32,7 @@ private void GUI() {
     JPanel rightframe = new JPanel();
     rightframe.setLayout(new BoxLayout(rightframe, BoxLayout.Y_AXIS));
     rightframe.add(new JLabel("Simulation Controls"));
-    simulationControls.populate(plane);
+    simulationControls.populate(parameters.plane);
     rightframe.add(simulationControls);
 
     JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, planeView, rightframe);
@@ -44,11 +45,11 @@ private void GUI() {
     frame.setVisible(true);
     }
 
-    public void setPlaneView(Plane plane, Passenger[] allPassengers) {
-        this.plane = plane;
+    public void setPlaneView() {
+        this.plane = parameters.plane;
         planeView.removeAll();
-        planeView.setPlane(plane);
-        planeView.setPassengers(allPassengers);
+        planeView.setPlane();
+        planeView.setPassengers(parameters.allPassengers);
         planeView.repaint();
     }
 
@@ -56,10 +57,10 @@ public void replacePlane(Plane plane){ // bad naming lol
         this.plane = plane;
         SwingUtilities.invokeLater(() -> { // was having issues with sync
             planeView.removeAll();
-            planeView.setPlane(plane);
+            planeView.setPlane();
             planeView.revalidate();
             planeView.repaint();
-            simulationControls.populate(plane); 
+            simulationControls.populate(parameters.plane); 
         }); 
     }
 
@@ -68,9 +69,9 @@ public void replacePlane(Plane plane){ // bad naming lol
         planeView.repaint();
     }
 
-    public void setPlane(Plane plane){
-        planeView.setPlane(plane);
-        simulationControls.populate(plane);
+    public void setPlane(){
+        planeView.setPlane();
+        simulationControls.populate(parameters.plane);
     }
 }
 

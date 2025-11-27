@@ -1,9 +1,9 @@
-import java.util.ArrayList;
+package planeSimulation;
 
 class Passenger {
 
     //attributes
-    int[] family; // index in allPassengers
+    int[] family = null; // index in allPassengers
     double walkingSpeed;
     double stowingSpeed;
     double sittingSpeed;
@@ -46,12 +46,6 @@ class Passenger {
         return seat;
     }
     public void setFamily(int[] family) {
-/*         int[] safe = new int[family.length-1];
-        int j = 0;
-        for (int i = 0; i<family.length-1; i++){
-            if (family[i] != this.index){safe[j++] = family[i];}
-        }
-        this.family = safe; */
         this.family = family;
     }
     public int[] getFamily() {

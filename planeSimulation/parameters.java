@@ -1,10 +1,17 @@
+package planeSimulation;
+
+import java.util.Random;
+
 public class parameters {
+
+    public static final Random random = new Random();
 
     public static int NUMBER_GENERATIONS = 1000;
     public static int NUMBER_SIMULATIONS = 500;
-    public static Plane plane = 
-    new Plane(20, 6, 14, 6, new int[]{3, 3}, new int[]{0, 7}, "Boeing 737");
 
+    public static Plane plane = 
+    new Plane(20, 6, 14, 6, new int[]{3, 3}, new int[]{0, 7});
+    public static Passenger[] allPassengers;
     // priorities
 
     public static double QUICKNESS = 1.0;

@@ -1,3 +1,4 @@
+package planeSimulation;
 import javax.swing.*;
 import javax.swing.border.Border;
 
@@ -8,18 +9,39 @@ class PlaneView extends JPanel {
     Seat[][] seatingChart;
     int rows;
     int cols;
-    JPanel buttonGrid; 
+    JPanel buttonGrid;
     Passenger[] passengers;
     int[] groups;
 
     // was using a JButton but rendering was soooo slow so basically using tiny little JPanels now.
-    static class SeatCell extends JPanel {
+     class SeatCell extends JPanel {
         public SeatCell(int size) {
             setLayout(new BorderLayout());
             setPreferredSize(new Dimension(size, size));
             setOpaque(true);
         }
         void setCellColor(Color c){ setBackground(c); }
+        void setToolTip(Passenger p){
+            if (p == null) {
+                setToolTipText("Empty");
+            } else {
+                String tooltip = "<html>Passenger Index: " + p.getIndex() +
+                                  "<br/>Group number " + groups[p.getIndex()] +
+                                 "<br/>Walking Speed: " + String.format("%.2f", p.getWalkingSpeed()) +
+                                 "<br/>Stowing Speed: " + String.format("%.2f", p.getStowingSpeed()) +
+                                 "<br/>Sitting Speed: " + String.format("%.2f", p.getSittingSpeed()) +
+                                 "<br/>Bags: " + p.getBags();
+                if (p.getFamily() != null) {
+                    tooltip += "<br/>Family Members: ";
+                    for (int relative : p.getFamily()) {
+                        tooltip += relative + " ";
+                    }
+                }
+                tooltip += "</html>";
+                setToolTipText(tooltip);
+            }
+
+        }
     }
 
     public PlaneView() { setDoubleBuffered(true); }
@@ -28,9 +50,9 @@ class PlaneView extends JPanel {
         this.passengers = passengers;
     }
 
-    public void setPlane(Plane plane){
-        this.plane = plane;
-        this.rows = plane.getRows();
+    public void setPlane(){
+        this.plane = parameters.plane;
+        this.rows = plane.getLength();
         this.seatingChart = plane.getSeatingChart();
         // cols must match seatingChart columns (includes aisles)
         this.cols = plane.getWidth();
@@ -87,6 +109,7 @@ class PlaneView extends JPanel {
     }
 
     public void updateButtons(int[] groups){
+        this.groups = groups;
         if (buttonGrid == null || seatingChart == null || passengers == null || groups == null) return;
 
         Component[] allButtons = buttonGrid.getComponents();
@@ -108,6 +131,7 @@ class PlaneView extends JPanel {
             int seatIndex = seat.getRow() * width + seat.getSeat();
             if (seatIndex < 0 || seatIndex >= allButtons.length) continue;
             SeatCell cell = (SeatCell) allButtons[seatIndex];
+            cell.setToolTip(passenger);
             int g = groups[passenger.getIndex()];
             if (g >= 0 && g < groupColours.length) {
                 cell.setCellColor(groupColours[g]);

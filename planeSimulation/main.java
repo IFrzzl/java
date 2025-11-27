@@ -1,4 +1,5 @@
-import java.lang.reflect.Parameter;
+package planeSimulation;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -6,17 +7,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-// next steps
-//family seating - clustering together
-// add functionality for multiple queues // fuck no lol
-// working on ga at high level control - dynamic parameters
-
-
 public class main {
     public static ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     private static Simulation[] allSimulations;
-    public static Passenger[] globalPassengers;
-    public static Plane globalPlane;
     public static SimulationWindow simulationWindow;
 
     public static long startTime = 0;
@@ -24,11 +17,9 @@ public class main {
     public static void main(String[] args) {
         Plane plane = parameters.plane;
         simulationWindow = new SimulationWindow(parameters.plane); // using default plane
-
-        Passenger[] allPassengers = new Passenger[plane.getCapacity()];
-        generatePassengerData(plane, allPassengers);
-        globalPassengers = allPassengers;
-        simulationWindow.setPlaneView(plane, allPassengers);
+        parameters.allPassengers = new Passenger[plane.getCapacity()];
+        generatePassengerData();
+        simulationWindow.setPlaneView();
 
         while (true) {
             while (!parameters.STARTED) {
@@ -50,12 +41,10 @@ public class main {
             startTime = System.nanoTime();
             parameters.END = false;
             plane = parameters.plane;
-            globalPlane = plane;
             
-            allPassengers = new Passenger[plane.getCapacity()];
-            generatePassengerData(plane, allPassengers);
-            globalPassengers = allPassengers;
-            simulationWindow.setPlaneView(plane, allPassengers);
+            parameters.allPassengers = new Passenger[plane.getCapacity()];
+            generatePassengerData();
+            simulationWindow.setPlaneView();
 
             System.out.println(plane.getCapacity());
             run();
@@ -64,8 +53,6 @@ public class main {
     }
 
     public static void run(){
-
-        Plane plane = globalPlane;
         int NUMBER_SIMULATIONS = parameters.NUMBER_SIMULATIONS;
         int NUMBER_GENERATIONS = parameters.NUMBER_GENERATIONS;
 
@@ -76,8 +63,8 @@ public class main {
         int currentDuration = 0;
         int staticGenerations = 0;
         for (int i = 0; i < NUMBER_SIMULATIONS; i++) {
-             //(int) Math.abs(RandomProvider.rand.nextGaussian()) * 3 + 3
-            allSimulations[i] = new Simulation(globalPassengers, plane, parameters.MAX_GROUPS);
+             //(int) Math.abs(parameters.random.nextGaussian()) * 3 + 3
+            allSimulations[i] = new Simulation(parameters.MAX_GROUPS);
             final int idx = i;
             futures.add(executor.submit(() -> allSimulations[idx].simulateBoardingTime()));
         }
@@ -126,7 +113,7 @@ public class main {
                 currentDuration = 0;
                 futures.clear();
                 for (int j = 0; j < NUMBER_SIMULATIONS; j++) {
-                    allSimulations[j] = new Simulation(globalPassengers, plane, parameters.MAX_GROUPS);
+                    allSimulations[j] = new Simulation(parameters.MAX_GROUPS);
                     final int k = j;
                     futures.add(executor.submit(() -> allSimulations[k].simulateBoardingTime()));
                 }
@@ -151,28 +138,28 @@ public class main {
         
     }
 
-    static void generatePassengerData(Plane plane, Passenger[] allPassengers) {
+    static void generatePassengerData() {
         
         // RANDOM ATTRIBUTES FOR EACH PASSENGER
 
-        int numberPassengers = plane.getCapacity();
-        for (int i = 0; i < allPassengers.length; i++){
+        int numberPassengers = parameters.plane.getCapacity();
+        for (int i = 0; i < parameters.allPassengers.length; i++){
             int bags = 0;
             double factor = 1.0;
-            if (RandomProvider.rand.nextDouble()<parameters.PROBABILITY_DISABLED){
+            if (parameters.random.nextDouble()<parameters.PROBABILITY_DISABLED){
                 factor *= 0.6;
             }
-            if (RandomProvider.rand.nextDouble()<parameters.PROBABILITY_OLD | RandomProvider.rand.nextDouble()<parameters.PROBABILITY_CHILDREN) {
+            if (parameters.random.nextDouble()<parameters.PROBABILITY_OLD | parameters.random.nextDouble()<parameters.PROBABILITY_CHILDREN) {
                 factor *= 0.8;
             }
-            if (RandomProvider.rand.nextDouble()<parameters.PROBABILITY_BAGS) {
-                bags = RandomProvider.rand.nextInt(parameters.MAX_BAGS + 1);
+            if (parameters.random.nextDouble()<parameters.PROBABILITY_BAGS) {
+                bags = parameters.random.nextInt(parameters.MAX_BAGS + 1);
                 factor *= 1 - (0.2 * bags);
             }
-            double walkingSpeed = Math.min(3, Math.abs(RandomProvider.rand.nextGaussian())) / factor + parameters.DEFAULT_WALKING_SPEED; // 2 is the standard deviation
-            double stowingSpeed = bags * Math.min(3, Math.abs(RandomProvider.rand.nextGaussian())) / factor + parameters.DEFAULT_STOWING_SPEED;
-            double SittingSpeed = Math.min(3, Math.abs(RandomProvider.rand.nextGaussian()))/ factor + parameters.DEFAULT_SITTING_SPEED;
-            allPassengers[i] = new Passenger(i, walkingSpeed, stowingSpeed, SittingSpeed, null, bags);
+            double walkingSpeed = Math.min(3, Math.abs(parameters.random.nextGaussian())) / factor + parameters.DEFAULT_WALKING_SPEED; // 2 is the standard deviation
+            double stowingSpeed = bags * Math.min(3, Math.abs(parameters.random.nextGaussian())) / factor + parameters.DEFAULT_STOWING_SPEED;
+            double SittingSpeed = Math.min(3, Math.abs(parameters.random.nextGaussian()))/ factor + parameters.DEFAULT_SITTING_SPEED;
+            parameters.allPassengers[i] = new Passenger(i, walkingSpeed, stowingSpeed, SittingSpeed, null, bags);
         }
 
         // GENERATE FAMILIES
@@ -181,34 +168,34 @@ public class main {
         while (familyPassengers>0){
             int size = 0;
             if (familyPassengers > 7){
-                size = RandomProvider.rand.nextInt(1, 5) + 2;
+                size = parameters.random.nextInt(1, 5) + 2;
             } else { size = familyPassengers;}
 
             int[] family = new int[size];
-            int startIndex = RandomProvider.rand.nextInt(allPassengers.length);
+            int startIndex = parameters.random.nextInt(parameters.allPassengers.length);
             for (int i = 0; i < size; i++){
-                if (startIndex + size - 1 >= allPassengers.length || allPassengers[startIndex+i].getFamily() != null ){continue;}
+                if (startIndex + size - 1 >= parameters.allPassengers.length || parameters.allPassengers[startIndex+i].getFamily() != null ){break;}
                 family[i] = startIndex+i;
             }
             for (int passenger: family){
-                allPassengers[passenger].setFamily(family);
+                parameters.allPassengers[passenger].setFamily(family);
             }
-            familyPassengers -= size;
+            familyPassengers -= family.length;
         }
 
         // assign seats
-        Seat[][] seatingChart = plane.getSeatingChart();
-        int rows = plane.getRows();
-        int cols = plane.getWidth();
+        Seat[][] seatingChart = parameters.plane.getSeatingChart();
+        int rows = parameters.plane.getLength();
+        int cols = parameters.plane.getWidth();
         int p = 0; // this requires the plane capacity to be correct
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
                 Seat seat = seatingChart[i][j];
                 if (seat.getStatus() == SeatStatus.OTHER || seat.getStatus() == SeatStatus.AISLE) {continue;}
-                Passenger passenger = allPassengers[p];
+                Passenger passenger = parameters.allPassengers[p];
                 passenger.setSeat(seat);
                 // get distance from aisle
-                int distance = Math.abs(plane.getAisles()[0] - j); // only set up to deal with one aisle for the foreseeable
+                int distance = Math.abs(parameters.plane.getAisles()[0] - j); // only set up to deal with one aisle for the foreseeable
                 passenger.setSittingSpeed(passenger.getSittingSpeed() * distance);
                 p++;
             }
@@ -231,7 +218,7 @@ public class main {
         }
 
         for (int i = 0; i < newSimulations; i++) {      
-            Simulation newSim = new Simulation(globalPassengers, globalPlane, RandomProvider.rand.nextInt(2, parameters.MAX_GROUPS + 1));
+            Simulation newSim = new Simulation(parameters.random.nextInt(2, parameters.MAX_GROUPS + 1));
             newPopulation[i] = newSim;
         }
 
@@ -262,7 +249,7 @@ public class main {
 
         // mutation (but not elites)
         for (int i = 0; i < newPopulation.length - ELITE_SIMULATIONS; i++) {
-            if (RandomProvider.rand.nextDouble() < parameters.MUTATION && newPopulation[i] != null) {
+            if (parameters.random.nextDouble() < parameters.MUTATION && newPopulation[i] != null) {
                 newPopulation[i].mutate();
             }
         }
@@ -287,7 +274,7 @@ public class main {
         // using tournament style selection
         Simulation best = null;
         for (int i = 0; i < parameters.TOURNAMENT_SIZE; i++) {
-            Simulation candidate = simulations[RandomProvider.rand.nextInt(simulations.length)];
+            Simulation candidate = simulations[parameters.random.nextInt(simulations.length)];
             if (best == null || candidate.getDuration() < best.getDuration()) {
                 best = candidate;
             }
@@ -298,14 +285,13 @@ public class main {
     static Simulation crossover(Simulation[] simulations){
         Simulation s1 = selection(simulations);
         Simulation s2 = selection(simulations);
-        int length = s1.getPassengers().length;
-/*         int groupsNum = s1.getNumberGroups();
-        if (RandomProvider.rand.nextDouble()>0.5){
+        int length = parameters.allPassengers.length;
+
+        int groupsNum = s1.getNumberGroups();
+        if (parameters.random.nextDouble()>0.5){
             groupsNum = s2.getNumberGroups();
         }
-        Simulation child = new Simulation(globalPassengers, globalPlane, groupsNum);
-        child.setNumberGroups(groupsNum); */
-        Simulation child = new Simulation(globalPassengers, globalPlane, parameters.MAX_GROUPS);
+        Simulation child = new Simulation(groupsNum);
         int[] childGroups = new int[length];
 
         int index = 0;
@@ -314,10 +300,10 @@ public class main {
             if (length-index <= 4){
                 blockSize = length-index;
             } else {
-            blockSize = RandomProvider.rand.nextInt(4, Math.min(8, length-index));
+            blockSize = parameters.random.nextInt(4, Math.min(8, length-index));
             }
             Simulation parent = s1;
-            if (RandomProvider.rand.nextDouble()>0.5) {
+            if (parameters.random.nextDouble()>0.5) {
                 parent = s2;
             }
             for (int i = index; i<index+blockSize; i++){
@@ -338,9 +324,9 @@ public class main {
     static Simulation[] findQuickest(Simulation[] simulations) {
         Simulation[] sorted = Arrays.copyOf(simulations, simulations.length);
         if (parameters.WORSTFIND){
-            Arrays.sort(sorted, (s1, s2) -> Integer.compare(s2.getDuration(), s1.getDuration()));
+            Arrays.sort(sorted, (s1, s2) -> Integer.compare(s2.getFitness(), s1.getFitness()));
         } else {
-            Arrays.sort(sorted, (s1, s2) -> Integer.compare(s1.getDuration(), s2.getDuration()));
+            Arrays.sort(sorted, (s1, s2) -> Integer.compare(s1.getFitness(), s2.getFitness()));
         }
         return sorted;
     }

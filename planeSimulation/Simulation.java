@@ -1,12 +1,11 @@
+package planeSimulation;
 import java.util.*;
 import java.util.stream.*;
 
 public class Simulation {
-    int duration = 69;
+    int duration = 0;
     int[] boardingInts;
     int length = 0;
-    Passenger[]allPassengers;
-    Plane plane;
     int numberGroups;
 
     int randomPenalty = 0;
@@ -14,11 +13,12 @@ public class Simulation {
     double[] avgDistance;
     double[] sdDistance;
 
-    public Simulation(Passenger[]allPassengers, Plane plane, int numberGroups) {
-        this.allPassengers = allPassengers;
-        this.plane = plane;
+    int fitnessScore = 0;
+
+    public Simulation(int numberGroups) {
         this.numberGroups = numberGroups;
-        this.length = allPassengers.length;
+        length = parameters.allPassengers.length;
+        
         generateInitialGroups();
 
         adjacentSameGroupSeats = new int[numberGroups];
@@ -27,30 +27,11 @@ public class Simulation {
 
     }
 
-    public int[] getBoardingInts() {
-        return boardingInts;
-    }
-    public int getLength() {
-        return length;
-    }
-    public int getNumberGroups() {
-        return numberGroups;
-    }
-    public Passenger[]getPassengers(){
-        return allPassengers;
-    }
-    public Plane getPlane(){
-        return plane;
-    }
-    public void setBoardingInts(int[] bi){
-        boardingInts = bi;
-    }
-
     public void joinFamilies(){
-        for (Passenger passenger: allPassengers){
+        for (Passenger passenger: parameters.allPassengers){
             if (passenger.getFamily() != null) {
                 int[] family = passenger.getFamily();
-                int group = boardingInts[family[RandomProvider.rand.nextInt(family.length)]];
+                int group = boardingInts[family[parameters.random.nextInt(family.length)]];
                 for (int relative: family){
                     boardingInts[relative] = group;
                 }
@@ -62,14 +43,14 @@ public class Simulation {
         int[] groups = new int[length];
 
         for (int i = 0; i<length; i++){
-            groups[i] = RandomProvider.rand.nextInt(numberGroups);
+            groups[i] = parameters.random.nextInt(numberGroups);
         }
-        boardingInts = groups;
+        this.boardingInts = groups;
         joinFamilies();
     }
 
     public Boolean splitFamilies(){
-        for (Passenger passenger:allPassengers){
+        for (Passenger passenger:parameters.allPassengers){
             if (passenger.getFamily() != null) {
                 int[] family = passenger.getFamily();
                 for (int relative: family){
@@ -83,10 +64,10 @@ public class Simulation {
     }
 
     void mutate(){
-        int target1 = RandomProvider.rand.nextInt(allPassengers.length);
-        int target2 = RandomProvider.rand.nextInt(allPassengers.length);
+        int target1 = parameters.random.nextInt(parameters.allPassengers.length);
+        int target2 = parameters.random.nextInt(parameters.allPassengers.length);
         
-        Passenger passenger1 = allPassengers[target1];
+        Passenger passenger1 = parameters.allPassengers[target1];
         int[] family1 = passenger1.getFamily();
         int newGroup1 = boardingInts[target2];
         if (family1 != null){
@@ -96,8 +77,8 @@ public class Simulation {
         }
         boardingInts[passenger1.getIndex()] = newGroup1;
 
-        Passenger passenger2 = allPassengers[target2];
-        int[] family2 = passenger1.getFamily();
+        Passenger passenger2 = parameters.allPassengers[target2];
+        int[] family2 = passenger2.getFamily();
         int newGroup2 = boardingInts[target1];
         if (family2 != null){
             for (int relative: family2){
@@ -117,7 +98,7 @@ public class Simulation {
         int[][] boardingGroups = new int[numberGroups][];
         for (int i = 0; i < numberGroups; i++) {
             ArrayList<Integer> members = new ArrayList<>();
-            for (int j = 0; j<allPassengers.length; j++){
+            for (int j = 0; j<parameters.allPassengers.length; j++){
                 if (boardingInts[j] == i){
                     members.add(j);
                 }
@@ -134,7 +115,7 @@ public class Simulation {
         }
 
         //make the plane aisle
-        AisleQueue aisle = new AisleQueue(plane.getLength() + 2);
+        AisleQueue aisle = new AisleQueue(parameters.plane.getLength() + 2);
 
         Queue<Integer> boardingQueue = new LinkedList<Integer>();
         for (int i = 0; i<numberGroups; i++){
@@ -152,15 +133,15 @@ public class Simulation {
             int position = currentEvent.getPosition();
             switch (currentEvent.getType()) {
                 case EventTypes.SITTING:
-                    time += allPassengers[passenger].getSittingSpeed();
+                    time += parameters.allPassengers[passenger].getSittingSpeed();
                     aisle.remove(position);
                     break;
                 case EventTypes.WALK:
-                    if (position >= allPassengers[passenger].getSeat().getRow()) {
-                        eventsQueue.add(new Event(EventTypes.SITTING, time + allPassengers[passenger].getStowingSpeed(), passenger, position));
+                    if (position >= parameters.allPassengers[passenger].getSeat().getRow()) {
+                        eventsQueue.add(new Event(EventTypes.SITTING, time + parameters.allPassengers[passenger].getStowingSpeed(), passenger, position));
                     } else if (aisle.freeSpace(position)) {
                         aisle.advance(position);
-                        eventsQueue.add(new Event(EventTypes.WALK, time + allPassengers[passenger].getWalkingSpeed(), passenger, position + 1));
+                        eventsQueue.add(new Event(EventTypes.WALK, time + parameters.allPassengers[passenger].getWalkingSpeed(), passenger, position + 1));
                     } else {
                         eventsQueue.add(new Event(EventTypes.WALK, time + 2, passenger, position)); // wait two ticks and try again
                     }
@@ -186,9 +167,10 @@ public class Simulation {
         this.duration = (int) ticksElapsed;
         // default return
         // ha! i refuse to write another loop
-        return (int)(parameters.QUICKNESS * ticksElapsed
+        this.fitnessScore = (int)(parameters.QUICKNESS * ticksElapsed
          + 10*parameters.CLUSTERING*IntStream.of(this.adjacentSameGroupSeats).sum()
          + 10*parameters.ORDERLINESS * (DoubleStream.of(this.avgDistance).sum() + DoubleStream.of(this.sdDistance).sum()));
+        return this.fitnessScore;
     }
 
     public void randomPenalty(int[][] boardingGroups){
@@ -198,22 +180,22 @@ public class Simulation {
             ArrayList<Double> distances = new ArrayList<>();
             for (int j = 0; j<boardingGroups[i].length; j++){
                 int s1 = boardingGroups[i][j];
-                int x = s1 % plane.getWidth();
-                int y = s1 / plane.getWidth();
+                int x = s1 % parameters.plane.getWidth();
+                int y = s1 / parameters.plane.getWidth();
                 Boolean adjacentSameGroup = false;
                 // check if seat in business
                 if (y>0){
-                    if (s1 < plane.getBusinessRows() * plane.getSetsperBusinessRow()){
-                        x = s1 % plane.getSetsperBusinessRow();
-                        y = s1 / plane.getSetsperBusinessRow();
+                    if (s1 < parameters.plane.getBusinessRows() * parameters.plane.getSeatsperBusinessRow()){
+                        x = s1 % parameters.plane.getSeatsperBusinessRow();
+                        y = s1 / parameters.plane.getSeatsperBusinessRow();
                         if (y>0){
-                            int frontSeat = s1 - plane.getSetsperBusinessRow();
+                            int frontSeat = s1 - parameters.plane.getSeatsperBusinessRow();
                             if (boardingInts[frontSeat] == boardingInts[s1]){
                                 adjacentSameGroup = true;
                             }
                         }
                     } else {
-                        int frontSeat = s1 - plane.getWidth();
+                        int frontSeat = s1 - parameters.plane.getWidth();
                         if (boardingInts[frontSeat] == boardingInts[s1]){
                             adjacentSameGroup = true;
                         }
@@ -235,13 +217,13 @@ public class Simulation {
                     
                     int s2 = boardingGroups[i][k];
                     int x2, y2;
-                    if (s1 < plane.getBusinessRows() * plane.getSetsperBusinessRow()){
-                        x2 = s2 % plane.getSetsperBusinessRow();
-                        y2 = s2 / plane.getSetsperBusinessRow();
+                    if (s1 < parameters.plane.getBusinessRows() * parameters.plane.getSeatsperBusinessRow()){
+                        x2 = s2 % parameters.plane.getSeatsperBusinessRow();
+                        y2 = s2 / parameters.plane.getSeatsperBusinessRow();
                     }
                     else {
-                        x2 = s2 % plane.getWidth();
-                        y2 = s2 / plane.getWidth();
+                        x2 = s2 % parameters.plane.getWidth();
+                        y2 = s2 / parameters.plane.getWidth();
                     }
                     double distance = Math.sqrt(Math.pow(x2 - x, 2) + Math.pow(y2 - y, 2));
                     distances.add(distance);
@@ -271,12 +253,19 @@ public class Simulation {
     public int getDuration(){
         return duration;
     }
-
-    public void setDuration(int duration){
-        this.duration = duration;
+    public int getFitness(){
+        return fitnessScore;
     }
-
     public void setNumberGroups(int num){
         this.numberGroups = num;
+    }
+    public int[] getBoardingInts() {
+        return boardingInts;
+    }
+    public int getNumberGroups() {
+        return numberGroups;
+    }
+    public void setBoardingInts(int[] bi){
+        boardingInts = bi;
     }
 }

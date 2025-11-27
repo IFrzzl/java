@@ -1,12 +1,9 @@
+package planeSimulation;
 public enum SeatStatus {
     BUSINESS,
     ECONOMY,
     BUSINESS_EXIT,
     ECONOMY_EXIT,
-    BUSINESS_OCCUPIED,
-    ECONOMY_OCCUPIED,
-    BUSINESS_EXIT_OCCUPIED,
-    ECONOMY_EXIT_OCCUPIED,
     OTHER,
     AISLE,
     OCCUPIED
