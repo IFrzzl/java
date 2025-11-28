@@ -103,7 +103,7 @@ public class SimulationControls extends JPanel {
         removeAll();
         this.plane = plane;
 
-        JPanel content = new JPanel(new GridLayout(4, 2));
+        JPanel content = new JPanel(new GridLayout(3, 2));
         content.setBackground(Color.LIGHT_GRAY);
 
         generation = new JTextArea("\n    Current generation: 0 / " + parameters.NUMBER_GENERATIONS + "\n    Best time score: 0\n\n\n");

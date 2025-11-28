@@ -13,7 +13,7 @@ public class Simulation {
     double[] avgDistance;
     double[] sdDistance;
 
-    int fitnessScore = 0;
+    int fitnessScore = 100;
 
     public Simulation(int numberGroups) {
         this.numberGroups = numberGroups;
@@ -86,6 +86,9 @@ public class Simulation {
             }
         }
         boardingInts[passenger2.getIndex()] = newGroup2;
+
+        // ensure any mutated values still fall within the valid range
+        sanitizeGroups();
     }
 
     public int simulateBoardingTime() {
@@ -114,6 +117,8 @@ public class Simulation {
             ticksElapsed = parameters.SPLIT_PENALTY;
         }
 
+        randomPenalty(boardingGroups);
+
         //make the plane aisle
         AisleQueue aisle = new AisleQueue(parameters.plane.getLength() + 2);
 
@@ -123,7 +128,16 @@ public class Simulation {
                 boardingQueue.add(boardingGroups[i][j]);
             }
         }
-        eventsQueue.add(new Event(EventTypes.WALK, 0, boardingQueue.poll(), 0)); // first passenger starts walking at time 0
+        Integer first = boardingQueue.poll();
+        if (first == null) {
+            // no passengers to board — set duration/fitness to 0 and return
+            this.duration = 0;
+            this.fitnessScore = (int)(parameters.QUICKNESS * 0
+                + 10*parameters.CLUSTERING*IntStream.of(this.adjacentSameGroupSeats).sum()
+                + 10*parameters.ORDERLINESS * (DoubleStream.of(this.avgDistance).sum() + DoubleStream.of(this.sdDistance).sum()));
+            return this.fitnessScore;
+        }
+        eventsQueue.add(new Event(EventTypes.WALK, 0, first, 0)); // first passenger starts walking at time 0
 
         while (!eventsQueue.isEmpty()) {
 
@@ -163,7 +177,6 @@ public class Simulation {
         }
 
         // we want to encourage orderly looking groups that are feasible to board together
-        this.randomPenalty = (int) randomPenalty;
         this.duration = (int) ticksElapsed;
         // default return
         // ha! i refuse to write another loop
@@ -175,7 +188,7 @@ public class Simulation {
 
     public void randomPenalty(int[][] boardingGroups){
 
-        for (int i = 0; i<boardingGroups.length; i++){
+        for (int i = 0; i<numberGroups; i++){
             int adjacentSameGroupSeats = 0;
             ArrayList<Double> distances = new ArrayList<>();
             for (int j = 0; j<boardingGroups[i].length; j++){
@@ -236,13 +249,24 @@ public class Simulation {
                 avgDistance += d;
             }
 
-            avgDistance = avgDistance / distances.size();
+            // avoid dividing by zero — if there are <2 members then distances.size() == 0
+            // in that case treat avgDistance as 0.0
+            if (distances.size() == 0) {
+                avgDistance = 0.0;
+            } else {
+                avgDistance = avgDistance / distances.size();
+            }
             // now calculte s.d.
             double differenceTotal = 0;
             for (Double d: distances){
                 differenceTotal += Math.pow(d - avgDistance, 2);
             }
-            double sd = Math.sqrt(differenceTotal / distances.size());
+            double sd = 0.0;
+            if (distances.size() == 0) {
+                sd = 0.0;
+            } else {
+                sd = Math.sqrt(differenceTotal / distances.size());
+            }
 
             this.adjacentSameGroupSeats[i] = adjacentSameGroupSeats;
             this.avgDistance[i] = avgDistance;
@@ -267,5 +291,28 @@ public class Simulation {
     }
     public void setBoardingInts(int[] bi){
         boardingInts = bi;
+        // repair any out-of-range group labels that may have been copied
+        // from parents with different number of groups
+        sanitizeGroups();
+        joinFamilies();
+    }
+
+    /**
+     * Ensure every boardingInts value is in the valid range [0, numberGroups-1].
+     * This prevents passengers being assigned to non-existent groups (they'd
+     * otherwise be ignored when building boardingGroups and get dropped).
+     */
+    public void sanitizeGroups() {
+        if (boardingInts == null) return;
+        if (numberGroups <= 0) return;
+        for (int i = 0; i < boardingInts.length; i++) {
+            int v = boardingInts[i];
+            if (v < 0) {
+                boardingInts[i] = 0;
+            } else if (v >= numberGroups) {
+                // bring it into range by modulo — preserves some structure while ensuring validity
+                boardingInts[i] = v % numberGroups;
+            }
+        }
     }
 }

@@ -34,8 +34,8 @@ private void GUI() {
 
     helpBox.setSize(800, 600);
     // Panel of group number boxes to show boarding group colors.
-    JPanel demoSeats = new JPanel(new GridLayout(parameters.MAX_GROUPS / 3, (parameters.MAX_GROUPS + 1) / (parameters.MAX_GROUPS / 3), 5, 5));
-    for (int i = 0; i < parameters.MAX_GROUPS; i++) {
+    JPanel demoSeats = new JPanel(new GridLayout(4, 3, 5, 5));
+    for (int i = 0; i < 12; i++) {
         JButton seatDemo = new JButton("" + (i + 1));
         seatDemo.setBackground(groupColours[i]);
         demoSeats.add(seatDemo);
@@ -78,6 +78,7 @@ private void GUI() {
     exitItem.addActionListener(e -> System.exit(0));
     fileMenu.add(exitItem);
     JMenuItem helpItem = new JMenuItem("Help");
+    helpItem.setBackground(Color.red);
     helpItem.addActionListener(e -> {
         helpBox.setLocationRelativeTo(frame);
         helpBox.setVisible(true);

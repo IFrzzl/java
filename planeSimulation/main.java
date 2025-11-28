@@ -129,7 +129,8 @@ public class main {
             }
         }
 
-        Simulation winner = findQuickest((Simulation[]) goodSimulations.toArray())[0];
+        // avoid ClassCastException: use the typed toArray overload to get a Simulation[]
+        Simulation winner = findQuickest(goodSimulations.toArray(new Simulation[0]))[0];
         simulationWindow.refreshPlaneView(winner.getBoardingInts());  
 
         parameters.END = true;
@@ -213,9 +214,6 @@ public class main {
         // new random ones for diversity
         int newSimulations = (int)((double) newPopulation.length * parameters.NEW_SIMULATIONS);
         int crossoversNeeded = newPopulation.length - newSimulations - ELITE_SIMULATIONS;
-        if (crossoversNeeded + newSimulations + ELITE_SIMULATIONS != newPopulation.length) {
-            System.out.println("feck");
-        }
 
         for (int i = 0; i < newSimulations; i++) {      
             Simulation newSim = new Simulation(parameters.random.nextInt(2, parameters.MAX_GROUPS + 1));
@@ -231,10 +229,12 @@ public class main {
         for (Future<Simulation> future : crossoverFutures) {
             try {
                 Simulation child = future.get();
+                // crossover() should always return a non-null, sanitized child
                 if (child == null) {
-                    // If crossover failed, try again (redundant)
-                    crossoverFutures.add(executor.submit(() -> crossover(fittestSimulations)));
-                    continue;
+                    Simulation parent = fittestSimulations[parameters.random.nextInt(Math.max(1, fittestSimulations.length))];
+                    child = new Simulation(parent.getNumberGroups());
+                    int[] ints = parent.getBoardingInts();
+                    if (ints != null) child.setBoardingInts(Arrays.copyOf(ints, ints.length));
                 }
                 newPopulation[idx++] = child;
             } catch (Exception e) {
@@ -255,16 +255,41 @@ public class main {
         }
 
         // simulating boarding times
-        List<Future<Integer>> futures = new ArrayList<>();
-        for (Simulation simulation : newPopulation) {
-            futures.add(executor.submit(simulation::simulateBoardingTime)); 
-        }
-        for (Future<Integer> future: futures) {
-            try {
-                future.get();
-            } catch (Exception e) {
-                e.printStackTrace();
+        // ensure newPopulation contains no nulls — fill with clones of the selection pool (fittestSimulations) if needed
+        for (int i = 0; i < newPopulation.length; i++) {
+            if (newPopulation[i] == null) {
+                if (fittestSimulations.length > 0) {
+                    Simulation src = fittestSimulations[parameters.random.nextInt(fittestSimulations.length)];
+                    Simulation c = new Simulation(src.getNumberGroups());
+                    int[] ints = src.getBoardingInts();
+                    if (ints != null) c.setBoardingInts(Arrays.copyOf(ints, ints.length));
+                    newPopulation[i] = c;
+                } else {
+                    newPopulation[i] = new Simulation(parameters.random.nextInt(2, parameters.MAX_GROUPS + 1));
+                }
             }
+        }
+
+        List<Future<Integer>> futures = new ArrayList<>();
+        for (int i = 0; i < newPopulation.length; i++) {
+            final int taskIndex = i;
+            Simulation simulation = newPopulation[i];
+            // double-check and sanitize before run
+            simulation.sanitizeGroups();
+            if (simulation.splitFamilies()) simulation.joinFamilies();
+            futures.add(executor.submit(() -> {
+                try {
+                    return simulation.simulateBoardingTime();
+                } catch (Throwable t) {
+                    System.out.println("[EXC] Simulation task " + taskIndex + " threw: " + t);
+                    t.printStackTrace();
+                    throw t;
+                }
+            }));
+        }
+
+        for (Future<Integer> future : futures) {
+            try { future.get(); } catch (Exception e) { e.printStackTrace(); }
         }
 
         return newPopulation;
@@ -275,7 +300,7 @@ public class main {
         Simulation best = null;
         for (int i = 0; i < parameters.TOURNAMENT_SIZE; i++) {
             Simulation candidate = simulations[parameters.random.nextInt(simulations.length)];
-            if (best == null || candidate.getDuration() < best.getDuration()) {
+            if (best == null || candidate.getFitness() < best.getFitness()) {
                 best = candidate;
             }
         }
@@ -313,13 +338,17 @@ public class main {
 
         }
         child.setBoardingInts(childGroups);
+        // make sure group labels are valid for this child (parent labels might be out of range)
+        child.sanitizeGroups();
+        // repair family splits rather than returning null — keeps evolution running smoothly
         if (child.splitFamilies()) {
-            // two choices - return null, or fix it for them.
-/*             child.joinFamilies(); */
+            child.joinFamilies();
         }
 
         return child;
     }
+
+    // cloneSimulation removed — cloning now inlined where used (simpler flow)
 
     static Simulation[] findQuickest(Simulation[] simulations) {
         Simulation[] sorted = Arrays.copyOf(simulations, simulations.length);
