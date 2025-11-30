@@ -3,12 +3,22 @@ package planeSimulation;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 public class main {
-    public static ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    private static final int WORKER_THREADS = Math.max(1, Runtime.getRuntime().availableProcessors() - 1);
+    private static final AtomicInteger THREAD_COUNTER = new AtomicInteger(1);
+    public static ExecutorService executor = Executors.newFixedThreadPool(WORKER_THREADS, r -> {
+        Thread t = new Thread(r);
+        t.setDaemon(true);
+        // stop my desktop env crashing D: :D
+        try { t.setPriority(Math.max(Thread.MIN_PRIORITY, Thread.currentThread().getPriority() - 1)); } catch (Exception e) {}
+        t.setName("plane simulation :3" + THREAD_COUNTER.getAndIncrement());
+        return t;
+    });
     private static Simulation[] allSimulations;
     public static SimulationWindow simulationWindow;
 
@@ -32,9 +42,6 @@ public class main {
                     parameters.RESET = false;
                     simulationWindow.simulationControls.reset();           // reset parameter values and UI
                     simulationWindow.simulationControls.refreshGAControls(); // update GA sliders
-                    // ensure plane view matches reset plane
-                    plane = parameters.plane;
-                    simulationWindow.replacePlane(plane);
                 }
                 try {Thread.sleep(10);} catch (InterruptedException e){}
             }
@@ -55,6 +62,7 @@ public class main {
     public static void run(){
         int NUMBER_SIMULATIONS = parameters.NUMBER_SIMULATIONS;
         int NUMBER_GENERATIONS = parameters.NUMBER_GENERATIONS;
+        parameters.pool = 1;
 
         allSimulations = new Simulation[NUMBER_SIMULATIONS];
         ArrayList<Simulation> goodSimulations = new ArrayList<>();
@@ -91,6 +99,7 @@ public class main {
                 } else{
                     currentDuration = w.getDuration();
                     staticGenerations = 0;
+
                 }
             parameters.NEW_SIMULATIONS = Math.min(Math.max(0.1, staticGenerations / 8) * 1, 0.3);
             parameters.MUTATION = Math.min(0.15, Math.max(0.1, 0.05*staticGenerations));
@@ -101,12 +110,14 @@ public class main {
             System.out.println("Generation " + i + " complete. Current winning time: " + w.getDuration() + ". Static gens: " + staticGenerations + ". New sims: " + parameters.NEW_SIMULATIONS + ". Mutation rate: " + parameters.MUTATION);
             System.out.println("Simulation random penalty: " + w.randomPenalty);
             System.out.println(parameters.MAX_GROUPS + "");
-            simulationWindow.simulationControls.updateGeneration(i, w.getDuration(), staticGenerations, startTime);
+            Simulation worst = findQuickest(allSimulations)[allSimulations.length-1];
+            simulationWindow.simulationControls.updateGeneration(i, w, worst, staticGenerations, startTime);
             simulationWindow.simulationControls.refreshGAControls(); // sliders go brrr
 
             if (staticGenerations >= 50 || parameters.SKIP){
                 parameters.SKIP = false;
                 goodSimulations.add(w);
+                parameters.pool = goodSimulations.size() + 1;
                 // if stuff really isn't changing, keep the winner and generate a whole new batch
                 allSimulations = new Simulation[NUMBER_SIMULATIONS];
                 staticGenerations = 0;
@@ -129,7 +140,6 @@ public class main {
             }
         }
 
-        // avoid ClassCastException: use the typed toArray overload to get a Simulation[]
         Simulation winner = findQuickest(goodSimulations.toArray(new Simulation[0]))[0];
         simulationWindow.refreshPlaneView(winner.getBoardingInts());  
 
@@ -216,7 +226,7 @@ public class main {
         int crossoversNeeded = newPopulation.length - newSimulations - ELITE_SIMULATIONS;
 
         for (int i = 0; i < newSimulations; i++) {      
-            Simulation newSim = new Simulation(parameters.random.nextInt(2, parameters.MAX_GROUPS + 1));
+            Simulation newSim = new Simulation(parameters.random.nextInt(1, parameters.MAX_GROUPS + 1));
             newPopulation[i] = newSim;
         }
 

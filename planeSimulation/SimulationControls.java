@@ -107,9 +107,9 @@ public class SimulationControls extends JPanel {
         content.setBackground(Color.LIGHT_GRAY);
 
         generation = new JTextArea("\n    Current generation: 0 / " + parameters.NUMBER_GENERATIONS + "\n    Best time score: 0\n\n\n");
+        generation.setWrapStyleWord(true);
         generation.setBorder(new CompoundBorder(new EmptyBorder(new Insets(15, 15, 15, 15)), new LineBorder(Color.WHITE, 1)));
         generation.setFont(generation.getFont().deriveFont(Font.BOLD,16f));
-        generation.setLineWrap(true);
         content.add(generation);
 
         JPanel mainInfo = new JPanel(new GridLayout(5, 1));
@@ -543,20 +543,36 @@ public class SimulationControls extends JPanel {
 
     }
 
-    public void updateGeneration(int gens, int time, int stats, long startTime){
+    public void updateGeneration(int gens, Simulation best, Simulation worst, int stats, long startTime){
         gens++;
         long timeElapsed = System.nanoTime()-startTime;
         generation.setText("\n    Current generation: " + gens + " / " + parameters.NUMBER_GENERATIONS + 
-            "\n    Best time score: " + time + "\n    Static generations: " + stats);
-        if (gens == parameters.NUMBER_GENERATIONS){
+            "\n    Current pool: " + parameters.pool + 
+            "\n    " + (parameters.WORSTFIND ? "Worst": "Best") + " simulation has " + best.getNumberGroups() + " groups, taking " 
+            +  best.getDuration() + "\n ticks." + " Fitness score: " + best.fitnessScore + 
+            "\n    " + (!parameters.WORSTFIND ? "Worst": "Best") + " simulation has " + worst.getNumberGroups() + " groups, taking " 
+            +  worst.getDuration() + "\n ticks." + worst.fitnessScore +  
+            "\n    Static generations: " + stats + "\n\n       Time elapsed: " +
+            String.format("%02d:%02d.%03d",
+                timeElapsed / 60000000000L,
+                (timeElapsed / 1000000000) % 60,
+                (timeElapsed / 1000000) % 1000)
+    ); if (gens == parameters.NUMBER_GENERATIONS){
             generation.setText("\n    Simulation finished! Showing winning simulation." + "\n" + generation.getText() + "\n    Trialled: "
             + parameters.NUMBER_GENERATIONS*parameters.NUMBER_SIMULATIONS + " simulations in " 
-            + String.format("%02d:%02d.%03d", timeElapsed/(1000000000*60), (timeElapsed/1000000000)%60, timeElapsed%1000000000));
+            +             String.format("%02d:%02d.%03d",
+                timeElapsed / 60000000000L,
+                (timeElapsed / 1000000000) % 60,
+                (timeElapsed / 1000000) % 1000)); // half understand this even after it was explained to me
         }
     }
 
+    public void generationText(String s){ // just fpr the tutorial lol
+        generation.setText(s);
+    }
+
     public void refreshGAControls() {
-        programmaticUpdate = true;
+        programmaticUpdate = true; 
         try {
             elitism.slider.setValue((int)(parameters.ELITISM * 100));
             elitism.reading.setText("" + elitism.slider.getValue());
@@ -615,12 +631,11 @@ public class SimulationControls extends JPanel {
         parameters.REDRAW = false;
         parameters.delay = 0.0;
 
-        // update UI on the EDT so components are manipulated safely
-        SwingUtilities.invokeLater(() -> {
-            // Always repopulate the UI to ensure all sliders and readers are reset
+        // gotta make sure everything renders when it's ready
+        SwingUtilities.invokeLater(() -> { 
             allComponents.clear();
             populate(parameters.plane);
-            updateGeneration(0, 1000, 0, 0);
+            updateGeneration(0, new Simulation(10), new Simulation(10), 0, 0);
             revalidate();
             repaint();
         });

@@ -56,6 +56,8 @@ public class parameters {
     public static Boolean RESET = false;
 
     public static double delay = 0.0;
+
+    public static int pool = 1;
     static {
 
     }
