@@ -13,7 +13,7 @@ public class Simulation {
     double[] avgDistance;
     double[] sdDistance;
 
-    int fitnessScore = 100;
+    int fitnessScore = 0;
 
     public Simulation(int numberGroups) {
         this.numberGroups = numberGroups;
@@ -46,21 +46,21 @@ public class Simulation {
             groups[i] = parameters.random.nextInt(numberGroups);
         }
         this.boardingInts = groups;
-        joinFamilies();
     }
 
-    public Boolean splitFamilies(){
+    public int splitFamilies(){
+        int sFs = 0;
         for (Passenger passenger:parameters.allPassengers){
             if (passenger.getFamily() != null) {
                 int[] family = passenger.getFamily();
                 for (int relative: family){
                     if (boardingInts[relative] != boardingInts[passenger.getIndex()]) {
-                        return true;
+                        sFs ++;
                     }
                 }
             }
         }
-        return false;
+        return sFs;
     }
 
     void mutate(){
@@ -92,6 +92,8 @@ public class Simulation {
     }
 
     public int simulateBoardingTime() {
+        this.duration = 0;
+        this.fitnessScore = 0;
         double ticksElapsed = 0;
         // make a priority queue for boarding events
         // custom comparator using lamba to sort by start time
@@ -110,11 +112,6 @@ public class Simulation {
             for (int j = 0; j<members.size(); j++){
                 boardingGroups[i][j] = members.get(j);
             }
-        }
-
-        // check if families are split up
-        if (splitFamilies()){
-            ticksElapsed = parameters.SPLIT_PENALTY;
         }
 
         randomPenalty(boardingGroups);
@@ -145,6 +142,7 @@ public class Simulation {
             int passenger = currentEvent.getPassenger();
             double time = currentEvent.getTime();
             int position = currentEvent.getPosition();
+            SeatStatus status = parameters.allPassengers[passenger].getSeat().getStatus();
             switch (currentEvent.getType()) {
                 case EventTypes.SITTING:
                     time += parameters.allPassengers[passenger].getSittingSpeed();
@@ -157,6 +155,9 @@ public class Simulation {
                         aisle.advance(position);
                         eventsQueue.add(new Event(EventTypes.WALK, time + parameters.allPassengers[passenger].getWalkingSpeed(), passenger, position + 1));
                     } else {
+                        if (status == SeatStatus.BUSINESS || status == SeatStatus.BUSINESS_EXIT) {
+                            this.fitnessScore += 50; // we love capitalism
+                        }
                         eventsQueue.add(new Event(EventTypes.WALK, time + 2, passenger, position)); // wait two ticks and try again
                     }
                     break;
@@ -172,7 +173,6 @@ public class Simulation {
                 }
             }
             
-
             if (time>ticksElapsed) {ticksElapsed = time;}
         }
 
@@ -181,8 +181,9 @@ public class Simulation {
         // default return
         // ha! i refuse to write another loop
         this.fitnessScore = (int)(parameters.QUICKNESS * ticksElapsed
-         + 10*parameters.CLUSTERING*IntStream.of(this.adjacentSameGroupSeats).sum()
+         + 10*(parameters.CLUSTERING)*IntStream.of(this.adjacentSameGroupSeats).sum()
          + 10*parameters.ORDERLINESS * (DoubleStream.of(this.avgDistance).sum() + DoubleStream.of(this.sdDistance).sum()));
+        this.fitnessScore += parameters.SPLIT_PENALTY * splitFamilies();
         return this.fitnessScore;
     }
 
@@ -294,7 +295,6 @@ public class Simulation {
         // repair any out-of-range group labels that may have been copied
         // from parents with different number of groups
         sanitizeGroups();
-        joinFamilies();
     }
 
     /**

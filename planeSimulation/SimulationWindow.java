@@ -2,6 +2,8 @@ package planeSimulation;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Arrays;
+import java.util.stream.IntStream;
 
 public class SimulationWindow {
 
@@ -32,7 +34,7 @@ private void GUI() {
         new Color(255,220,235)
     };
 
-    helpBox.setSize(800, 600);
+    helpBox.setSize(800, 650);
     // Panel of group number boxes to show boarding group colors.
     JPanel demoSeats = new JPanel(new GridLayout(4, 3, 5, 5));
     for (int i = 0; i < 12; i++) {
@@ -65,6 +67,8 @@ private void GUI() {
             "<li><b> Orderliness </b>: Valuing passengers boarding in an easily analyzable order (using standard deviation of seat pair distances) </li>" +
             "</ul>" +
             "<p> The plane view uses panels where different colors represent different boarding groups. </p>" +
+            "<p> Each passenger has individual attributes affecting their boarding speed, such as walking speed, stowing speed, and sitting speed. </p>" +
+            "<p> To see information about an individual passenger, hover over a seat </p>" + 
             "<p> The following panels correspond to boarding groups: </p>" +
             "</body>" +
             "</body></html>");
@@ -74,41 +78,58 @@ private void GUI() {
     // thing to show at the start, similar to box above
     JFrame tutorialPanel = new JFrame("Tutorial");
     tutorialPanel.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-    tutorialPanel.setSize(800, 600);
+    tutorialPanel.setSize(800, 650);
     JLabel tutorialText = new JLabel("<html><body style='padding: 10px;'>"  + 
             "<h2>Plane Boarding Simulation</h2>" + 
             "<p>Welcome! This simulation allows you to visualize the boarding process of a plane. Passengers are assigned to boarding groups in different permuations: the goal is to find a solution that reduces plane boarding time.</p>" + 
-            "<p>Examples of possible permutations will now be shown, with commentary in the statistics box on the right 👉</p>"
+            "<p>Examples of possible permutations will now be shown, with commentary in the statistics box on the right 👉</p>" +
+            "<p>For more information and explanation of features, click 'Help'</p>" + 
+            "<h3>Notice:</h3>" +
+            "<ul>" +
+            "<li>A minimum of 8GB RAM is recommended for this program.</li>" +
+            "<li>For optimal performance, a multi-core processor is advised.</li>" +
+            "<li>In case of lags, consider reducing the plane size and number of simulations / generation</li>" +
+            "<li>Due to multithreading considerations, this program is endorsed for Windows and Ubuntu operating systems.</li>" +
+            "</ul>" +
+            "</body></html>"
     );
-    JPanel buttons = new JPanel(new GridLayout(1, 2));
+    tutorialText.setFont(tutorialText.getFont().deriveFont(Font.PLAIN,14));
+    JPanel buttons = new JPanel(new GridLayout(1, 3));
     JButton continueButton = new JButton("Continue");
-    continueButton.setBackground(new Color(255, 105, 120));
+    continueButton.setBackground(new Color(35, 209, 232));
     continueButton.setForeground(Color.WHITE);
     JButton skipButton = new JButton("Skip examples");
     skipButton.setBackground(new Color(255, 105, 120));
-    skipButton.setForeground(Color.WHITE);
+
     buttons.setMaximumSize(new Dimension(100, 150));
+    JButton helpButton = new JButton("Help");
     buttons.add(skipButton);
     buttons.add(continueButton);
+    buttons.add(helpButton);
     tutorialPanel.getContentPane().add(tutorialText, BorderLayout.NORTH);
     tutorialPanel.getContentPane().add(buttons, BorderLayout.SOUTH);
 
 
     JMenuBar menuBar = new JMenuBar();
     JMenu fileMenu = new JMenu("File");
-    JMenuItem exitItem = new JMenuItem("Exit");
-    exitItem.addActionListener(e -> System.exit(0));
-    fileMenu.add(exitItem);
 
-    JMenu helpItem = new JMenu("Help");
-    helpItem.setBackground(Color.red);
+    JMenuItem helpItem = new JMenuItem("Help");
+    helpItem.setBackground(new Color(255, 105, 120));
     helpItem.addActionListener(e -> {
         helpBox.setLocationRelativeTo(frame);
         helpBox.setVisible(true);
         helpBox.toFront();
     });
 
-    JMenu tutorialButton = new JMenu("Tutorial");
+
+    helpButton.setBackground(new Color(255, 105, 120));
+    helpButton.addActionListener(e -> {
+        helpBox.setLocationRelativeTo(frame);
+        helpBox.setVisible(true);
+        helpBox.toFront();
+    });
+
+    JMenuItem tutorialButton = new JMenuItem("Tutorial");
     tutorialButton.addActionListener(e -> {
         tutorialPanel.setLocationRelativeTo(frame);
         tutorialPanel.setVisible(true);
@@ -151,14 +172,52 @@ private void GUI() {
                         simulationControls.generationText("\n     Example " + (idx + 1) +
                             "\n     A simulation with " + exampleSimulations[idx].getNumberGroups() + " groups, " +
                             "\n     boarding in " + exampleSimulations[idx].getDuration() + " ticks.");
-                    } catch (Exception ex) {}
+                    } catch (Exception ee) {}
                 });
 
-                try { Thread.sleep(3000); } catch (InterruptedException ignored) {}
+                try { Thread.sleep(3000); } catch (Exception eee) {}
             }
             simulationControls.generationText("\n    Press 'Start Simulation' \n     to begin genetic algorithm!");
         }, "idk").start();
     });
+
+    JMenuItem presetsItem = new JMenuItem("Presets");
+    presetsItem.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 12));
+    JMenuItem blocks = new JMenuItem("6 blocks");
+    JMenuItem random = new JMenuItem("Random");        // fill boardingInts per group, taking care to only assign actual seat positions (exclude aisle slots)
+    JMenuItem optimal = new JMenuItem("Optimal");
+    Simulation sacrifice = new Simulation(6);
+    blocks.addActionListener(e -> {
+        int[] boardingInts = new int[parameters.plane.getCapacity()];
+        int[] quotas = new int[6];
+        int x = 0;
+        Arrays.fill(quotas, parameters.plane.getLength() / 6);
+        quotas[5] += parameters.plane.getLength() % 6; // number of rows for each group
+        int seatsPerRow = parameters.plane.getWidth() - parameters.plane.getAisles().length; // actual seat columns per row
+        for (int i = 0; i < 6; i++){
+            for (int j = 0; j < quotas[i]; j++){
+                if (IntStream.of(Arrays.copyOfRange(quotas, 0, i)).sum()+j < parameters.plane.getBusinessRows()){
+                    for (int k = 0; k < parameters.plane.getSeatsperBusinessRow(); k++){
+                        if (x >= boardingInts.length) break; // safety
+                        boardingInts[x++] = i;
+                    }
+                } else {
+                    for (int k = 0; k < seatsPerRow; k++){
+                        if (x >= boardingInts.length) break; // safety
+                        boardingInts[x++] = i;
+                    }
+                }
+            }
+        }
+        sacrifice.setBoardingInts(boardingInts);
+        refreshPlaneView(boardingInts);
+        sacrifice.simulateBoardingTime();
+        simulationControls.updateGeneration(0, sacrifice, null, 0, System.nanoTime());
+    });
+    fileMenu.add(blocks);
+    JMenuItem exitItem = new JMenuItem("Exit");
+    exitItem.addActionListener(e -> System.exit(0));
+    fileMenu.add(exitItem);
 
     frame.getContentPane().add(splitPane, BorderLayout.CENTER);
     frame.setLocationRelativeTo(null);

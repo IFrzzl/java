@@ -114,7 +114,7 @@ public class main {
             simulationWindow.simulationControls.updateGeneration(i, w, worst, staticGenerations, startTime);
             simulationWindow.simulationControls.refreshGAControls(); // sliders go brrr
 
-            if (staticGenerations >= 50 || parameters.SKIP){
+            if (staticGenerations >= 20 || parameters.SKIP){
                 parameters.SKIP = false;
                 goodSimulations.add(w);
                 parameters.pool = goodSimulations.size() + 1;
@@ -282,19 +282,10 @@ public class main {
 
         List<Future<Integer>> futures = new ArrayList<>();
         for (int i = 0; i < newPopulation.length; i++) {
-            final int taskIndex = i;
             Simulation simulation = newPopulation[i];
-            // double-check and sanitize before run
             simulation.sanitizeGroups();
-            if (simulation.splitFamilies()) simulation.joinFamilies();
             futures.add(executor.submit(() -> {
-                try {
-                    return simulation.simulateBoardingTime();
-                } catch (Throwable t) {
-                    System.out.println("[EXC] Simulation task " + taskIndex + " threw: " + t);
-                    t.printStackTrace();
-                    throw t;
-                }
+                return simulation.simulateBoardingTime();
             }));
         }
 
@@ -351,9 +342,6 @@ public class main {
         // make sure group labels are valid for this child (parent labels might be out of range)
         child.sanitizeGroups();
         // repair family splits rather than returning null — keeps evolution running smoothly
-        if (child.splitFamilies()) {
-            child.joinFamilies();
-        }
 
         return child;
     }

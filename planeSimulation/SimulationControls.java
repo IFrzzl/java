@@ -550,20 +550,21 @@ public class SimulationControls extends JPanel {
             "\n    Current pool: " + parameters.pool + 
             "\n    " + (parameters.WORSTFIND ? "Worst": "Best") + " simulation has " + best.getNumberGroups() + " groups, taking " 
             +  best.getDuration() + "\n ticks." + " Fitness score: " + best.fitnessScore + 
-            "\n    " + (!parameters.WORSTFIND ? "Worst": "Best") + " simulation has " + worst.getNumberGroups() + " groups, taking " 
-            +  worst.getDuration() + "\n ticks." + worst.fitnessScore +  
+            (worst != null ? "\n    " + (!parameters.WORSTFIND ? "Worst": "Best") + " simulation has " + worst.getNumberGroups() + " groups, taking " 
+            +  worst.getDuration() + "\n ticks." + "Fitness score: " +  worst.fitnessScore : "") + //arterial blockage inducing icl
             "\n    Static generations: " + stats + "\n\n       Time elapsed: " +
             String.format("%02d:%02d.%03d",
                 timeElapsed / 60000000000L,
                 (timeElapsed / 1000000000) % 60,
-                (timeElapsed / 1000000) % 1000)
+                (timeElapsed / 1000000) % 1000) +
+            (best.splitFamilies()>0 ? "\n       This simulation contains " + best.splitFamilies() + " split family members.":"")
     ); if (gens == parameters.NUMBER_GENERATIONS){
             generation.setText("\n    Simulation finished! Showing winning simulation." + "\n" + generation.getText() + "\n    Trialled: "
             + parameters.NUMBER_GENERATIONS*parameters.NUMBER_SIMULATIONS + " simulations in " 
             +             String.format("%02d:%02d.%03d",
                 timeElapsed / 60000000000L,
                 (timeElapsed / 1000000000) % 60,
-                (timeElapsed / 1000000) % 1000)); // half understand this even after it was explained to me
+                (timeElapsed / 1000000) % 1000)); // half understand long numbers even after it was explained to me ;(
         }
     }
 

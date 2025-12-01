@@ -45,7 +45,7 @@ public class parameters {
     public static double SELECTION_POOL = 0.5;
     public static double MUTATION = 0.2;
     public static double NEW_SIMULATIONS = 0.3;
-    public static int SPLIT_PENALTY = 700; //ticks
+    public static int SPLIT_PENALTY = 30; 
 
     // big flags
     public static Boolean PAUSED = false;
