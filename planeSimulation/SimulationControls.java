@@ -508,8 +508,11 @@ public class SimulationControls extends JPanel {
             pauseButton.setText("Play!");
             parameters.PAUSED = false;
             parameters.END = true;
+            parameters.STARTED = false;
             parameters.RESET = true;
             parameters.REDRAW = true;
+            endButton.doClick(); // this is now the jankiest thing I have ever written
+            // literally going back to the 80s with goto statements LMAO
         });
         
         JPanel buttonPanel = new JPanel(new GridLayout(1, 2));
@@ -546,11 +549,16 @@ public class SimulationControls extends JPanel {
     public void updateGeneration(int gens, Simulation best, Simulation worst, int stats, long startTime){
         gens++;
         long timeElapsed = System.nanoTime()-startTime;
+        if (parameters.WORSTFIND){
+            Simulation temp = best;
+            best = worst;
+            worst = temp;
+        }
         generation.setText("\n    Current generation: " + gens + " / " + parameters.NUMBER_GENERATIONS + 
             "\n    Current pool: " + parameters.pool + 
-            "\n    " + (parameters.WORSTFIND ? "Worst": "Best") + " simulation has " + best.getNumberGroups() + " groups, taking " 
+            "\n    Best simulation has " + best.getNumberGroups() + " groups, taking " 
             +  best.getDuration() + "\n ticks." + " Fitness score: " + best.fitnessScore + 
-            (worst != null ? "\n    " + (!parameters.WORSTFIND ? "Worst": "Best") + " simulation has " + worst.getNumberGroups() + " groups, taking " 
+            (worst != null ? "\n    Worst simulation has " + worst.getNumberGroups() + " groups, taking " 
             +  worst.getDuration() + "\n ticks." + "Fitness score: " +  worst.fitnessScore : "") + //arterial blockage inducing icl
             "\n    Static generations: " + stats + "\n\n       Time elapsed: " +
             String.format("%02d:%02d.%03d",

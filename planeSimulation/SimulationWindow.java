@@ -183,8 +183,10 @@ private void GUI() {
 
     JMenuItem presetsItem = new JMenuItem("Presets");
     presetsItem.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 12));
-    JMenuItem blocks = new JMenuItem("6 blocks");
-    JMenuItem random = new JMenuItem("Random");        // fill boardingInts per group, taking care to only assign actual seat positions (exclude aisle slots)
+    JMenuItem blocks = new JMenuItem("Conventional");
+    JMenuItem reverse = new JMenuItem("Back to Front");
+    JMenuItem windowSeat = new JMenuItem("Window-Seat");
+    JMenuItem randomButton = new JMenuItem("Random");  
     JMenuItem optimal = new JMenuItem("Optimal");
     Simulation sacrifice = new Simulation(6);
     blocks.addActionListener(e -> {
@@ -203,7 +205,7 @@ private void GUI() {
                     }
                 } else {
                     for (int k = 0; k < seatsPerRow; k++){
-                        if (x >= boardingInts.length) break; // safety
+                        if (x >= boardingInts.length) break; // yh i couldnt get the loops to work but whatevs
                         boardingInts[x++] = i;
                     }
                 }
@@ -214,7 +216,46 @@ private void GUI() {
         sacrifice.simulateBoardingTime();
         simulationControls.updateGeneration(0, sacrifice, null, 0, System.nanoTime());
     });
+    reverse.addActionListener(e -> {
+        int[] boardingInts = new int[parameters.plane.getCapacity()];
+        int[] quotas = new int[6];
+        int x = 0;
+        Arrays.fill(quotas, parameters.plane.getLength() / 6);
+        quotas[5] += parameters.plane.getLength() % 6; // number of rows for each group
+        int seatsPerRow = parameters.plane.getWidth() - parameters.plane.getAisles().length; // actual seat columns per row
+        for (int i = 5; i > -1; i--){
+            for (int j = 0; j < quotas[i]; j++){
+                if (IntStream.of(Arrays.copyOfRange(quotas, 0, i)).sum()+j < parameters.plane.getBusinessRows()){
+                    for (int k = 0; k < parameters.plane.getSeatsperBusinessRow(); k++){
+                        if (x >= boardingInts.length) break; // safety
+                        boardingInts[x++] = i;
+                    }
+                } else {
+                    for (int k = 0; k < seatsPerRow; k++){
+                        if (x >= boardingInts.length) break; // yh i couldnt get the loops to work but whatevs
+                        boardingInts[x++] = i;
+                    }
+                }
+            }
+        }
+        sacrifice.setBoardingInts(boardingInts);
+        refreshPlaneView(boardingInts);
+        sacrifice.simulateBoardingTime();
+        simulationControls.updateGeneration(0, sacrifice, null, 0, System.nanoTime());
+    });
+    randomButton.addActionListener(e -> {
+        refreshPlaneView(sacrifice.getBoardingInts());
+        sacrifice.simulateBoardingTime();
+        simulationControls.updateGeneration(0, sacrifice, null, 0, System.nanoTime());
+    });
+    // TO DO: WRITE WINDOW AISLE AND STEFFEN BOADING METHOD
+
+
+    fileMenu.add(presetsItem);
     fileMenu.add(blocks);
+    fileMenu.add(reverse);
+    fileMenu.add(randomButton);
+    fileMenu.add(optimal);
     JMenuItem exitItem = new JMenuItem("Exit");
     exitItem.addActionListener(e -> System.exit(0));
     fileMenu.add(exitItem);
