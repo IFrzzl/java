@@ -257,7 +257,7 @@ public class main {
             newPopulation[newPopulation.length - ELITE_SIMULATIONS + i] = fittestSimulations[i];
         }
 
-        // mutation (but not elites)
+        // mutation 
         for (int i = 0; i < newPopulation.length - ELITE_SIMULATIONS; i++) {
             if (parameters.random.nextDouble() < parameters.MUTATION && newPopulation[i] != null) {
                 newPopulation[i].mutate();
@@ -265,7 +265,6 @@ public class main {
         }
 
         // simulating boarding times
-        // ensure newPopulation contains no nulls — fill with clones of the selection pool (fittestSimulations) if needed
         for (int i = 0; i < newPopulation.length; i++) {
             if (newPopulation[i] == null) {
                 if (fittestSimulations.length > 0) {

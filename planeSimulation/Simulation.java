@@ -27,6 +27,14 @@ public class Simulation {
 
     }
 
+    // helper: find the compact passenger index for a seat at (r,c) by scanning pos arrays
+    private int findIndex(int[] posRow, int[] posCol, int len, int r, int c){
+        for (int i = 0; i < len; i++){
+            if (posRow[i] == r && posCol[i] == c) return i;
+        }
+        return -1;
+    }
+
     public void joinFamilies(){
         for (Passenger passenger: parameters.allPassengers){
             if (passenger.getFamily() != null) {
@@ -115,7 +123,7 @@ public class Simulation {
         }
 
         randomPenalty(boardingGroups);
-
+ 
         //make the plane aisle
         AisleQueue aisle = new AisleQueue(parameters.plane.getLength() + 2);
 
@@ -188,86 +196,89 @@ public class Simulation {
     }
 
     public void randomPenalty(int[][] boardingGroups){
+        Seat[][] seatingChart = parameters.plane.getSeatingChart();
+        int rows = seatingChart.length;
+        int cols = seatingChart[0].length;
 
-        for (int i = 0; i<numberGroups; i++){
-            int adjacentSameGroupSeats = 0;
-            ArrayList<Double> distances = new ArrayList<>();
-            for (int j = 0; j<boardingGroups[i].length; j++){
-                int s1 = boardingGroups[i][j];
-                int x = s1 % parameters.plane.getWidth();
-                int y = s1 / parameters.plane.getWidth();
-                Boolean adjacentSameGroup = false;
-                // check if seat in business
-                if (y>0){
-                    if (s1 < parameters.plane.getBusinessRows() * parameters.plane.getSeatsperBusinessRow()){
-                        x = s1 % parameters.plane.getSeatsperBusinessRow();
-                        y = s1 / parameters.plane.getSeatsperBusinessRow();
-                        if (y>0){
-                            int frontSeat = s1 - parameters.plane.getSeatsperBusinessRow();
-                            if (boardingInts[frontSeat] == boardingInts[s1]){
-                                adjacentSameGroup = true;
-                            }
-                        }
-                    } else {
-                        int frontSeat = s1 - parameters.plane.getWidth();
-                        if (boardingInts[frontSeat] == boardingInts[s1]){
-                            adjacentSameGroup = true;
-                        }
-                    }
-                }
-                // number of seats with adjacent same group seats
-                if (x>1){
-                    int leftSeat = s1 -1;
-                    if (boardingInts[leftSeat] == boardingInts[s1]){
-                        adjacentSameGroup = true;
-                    }
-                } 
-                
-                if (adjacentSameGroup){
-                    adjacentSameGroupSeats++;
-                }
-                
-                for (int k = j+1; k<boardingGroups[i].length; k++){
-                    
-                    int s2 = boardingGroups[i][k];
-                    int x2, y2;
-                    if (s1 < parameters.plane.getBusinessRows() * parameters.plane.getSeatsperBusinessRow()){
-                        x2 = s2 % parameters.plane.getSeatsperBusinessRow();
-                        y2 = s2 / parameters.plane.getSeatsperBusinessRow();
-                    }
-                    else {
-                        x2 = s2 % parameters.plane.getWidth();
-                        y2 = s2 / parameters.plane.getWidth();
-                    }
-                    double distance = Math.sqrt(Math.pow(x2 - x, 2) + Math.pow(y2 - y, 2));
-                    distances.add(distance);
-                    // 
-                }
+        int[] posRow = new int[parameters.plane.getCapacity()];
+        int[] posCol = new int[parameters.plane.getCapacity()];
+        int counter = 0;
+        for (int r = 0; r < rows; r++){
+            for (int c = 0; c < cols; c++){
+                Seat s = seatingChart[r][c];
+                if (s.getStatus() == SeatStatus.OTHER || s.getStatus() == SeatStatus.AISLE) continue;
+                posRow[counter] = r;
+                posCol[counter] = c;
+                counter++;
+            }
         }
 
-            double avgDistance = 0;
-            for (Double d: distances){
-                avgDistance += d;
+        for (int i = 0; i < numberGroups; i++){
+            int adjacentSameGroupSeats = 0;
+            ArrayList<Double> distances = new ArrayList<>();
+            for (int j = 0; j < boardingGroups[i].length; j++){
+                int s1 = boardingGroups[i][j];
+                if (s1 < 0 || s1 >= counter) continue;
+                int r1 = posRow[s1];
+                int c1 = posCol[s1];
+                boolean adjacentSameGroup = false;
+
+                // check neighbors: front, right, back, left
+                if (r1 > 0){
+                    int nr = r1 - 1, nc = c1;
+                    if (nr >= 0 && nr < rows && nc >= 0 && nc < cols){
+                        Seat s = seatingChart[nr][nc];
+                        if (s.getStatus() != SeatStatus.OTHER && s.getStatus() != SeatStatus.AISLE){
+                            int idx = findIndex(posRow, posCol, counter, nr, nc);
+                            if (idx != -1 && boardingInts[idx] == boardingInts[s1]) adjacentSameGroup = true;
+                        }
+                    }
+                }
+                if (!adjacentSameGroup && c1 < cols - 1){
+                    int nr = r1, nc = c1 + 1;
+                    Seat s = seatingChart[nr][nc];
+                    if (s.getStatus() != SeatStatus.OTHER && s.getStatus() != SeatStatus.AISLE){
+                        int idx = findIndex(posRow, posCol, counter, nr, nc);
+                        if (idx != -1 && boardingInts[idx] == boardingInts[s1]) adjacentSameGroup = true;
+                    }
+                }
+                if (!adjacentSameGroup && r1 < rows - 1){
+                    int nr = r1 + 1, nc = c1;
+                    Seat s = seatingChart[nr][nc];
+                    if (s.getStatus() != SeatStatus.OTHER && s.getStatus() != SeatStatus.AISLE){
+                        int idx = findIndex(posRow, posCol, counter, nr, nc);
+                        if (idx != -1 && boardingInts[idx] == boardingInts[s1]) adjacentSameGroup = true;
+                    }
+                }
+                if (!adjacentSameGroup && c1 > 0){
+                    int nr = r1, nc = c1 - 1;
+                    Seat s = seatingChart[nr][nc];
+                    if (s.getStatus() != SeatStatus.OTHER && s.getStatus() != SeatStatus.AISLE){
+                        int idx = findIndex(posRow, posCol, counter, nr, nc);
+                        if (idx != -1 && boardingInts[idx] == boardingInts[s1]) adjacentSameGroup = true;
+                    }
+                }
+
+                if (adjacentSameGroup) adjacentSameGroupSeats++;
+
+                for (int k = j + 1; k < boardingGroups[i].length; k++){
+                    int s2 = boardingGroups[i][k];
+                    if (s2 < 0 || s2 >= counter) continue;
+                    int r2 = posRow[s2];
+                    int c2 = posCol[s2];
+                    double distance = Math.sqrt(Math.pow(c2 - c1, 2) + Math.pow(r2 - r1, 2));
+                    distances.add(distance);
+                }
             }
 
-            // avoid dividing by zero — if there are <2 members then distances.size() == 0
-            // in that case treat avgDistance as 0.0
-            if (distances.size() == 0) {
-                avgDistance = 0.0;
-            } else {
-                avgDistance = avgDistance / distances.size();
-            }
-            // now calculte s.d.
+            double avgDistance = 0;
+            for (Double d: distances) avgDistance += d;
+            if (distances.size() == 0) avgDistance = 0.0; else avgDistance = avgDistance / distances.size();
+
             double differenceTotal = 0;
-            for (Double d: distances){
-                differenceTotal += Math.pow(d - avgDistance, 2);
-            }
+            for (Double d: distances) differenceTotal += Math.pow(d - avgDistance, 2);
             double sd = 0.0;
-            if (distances.size() == 0) {
-                sd = 0.0;
-            } else {
-                sd = Math.sqrt(differenceTotal / distances.size());
-            }
+            if (distances.size() == 0) sd = 0.0; else sd = Math.sqrt(differenceTotal / distances.size());
 
             this.adjacentSameGroupSeats[i] = adjacentSameGroupSeats;
             this.avgDistance[i] = avgDistance;
@@ -292,16 +303,9 @@ public class Simulation {
     }
     public void setBoardingInts(int[] bi){
         boardingInts = bi;
-        // repair any out-of-range group labels that may have been copied
-        // from parents with different number of groups
         sanitizeGroups();
     }
 
-    /**
-     * Ensure every boardingInts value is in the valid range [0, numberGroups-1].
-     * This prevents passengers being assigned to non-existent groups (they'd
-     * otherwise be ignored when building boardingGroups and get dropped).
-     */
     public void sanitizeGroups() {
         if (boardingInts == null) return;
         if (numberGroups <= 0) return;
@@ -310,7 +314,6 @@ public class Simulation {
             if (v < 0) {
                 boardingInts[i] = 0;
             } else if (v >= numberGroups) {
-                // bring it into range by modulo — preserves some structure while ensuring validity
                 boardingInts[i] = v % numberGroups;
             }
         }
