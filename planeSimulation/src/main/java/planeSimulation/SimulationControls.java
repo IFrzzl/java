@@ -549,17 +549,16 @@ public class SimulationControls extends JPanel {
     public void updateGeneration(int gens, Simulation best, Simulation worst, int stats, long startTime){
         gens++;
         long timeElapsed = System.nanoTime()-startTime;
-        if (parameters.WORSTFIND){
-            Simulation temp = best;
-            best = worst;
-            worst = temp;
-        }
+        // Don't swap best/worst; instead indicate which one is currently shown in the plane view
+        String bestShownFlag = parameters.WORSTFIND ? "" : " (shown)";
+        String worstShownFlag = parameters.WORSTFIND ? " (shown)" : "";
+
         generation.setText("\n    Current generation: " + gens + " / " + parameters.NUMBER_GENERATIONS + 
             "\n    Current pool: " + parameters.pool + 
             "\n    Best simulation has " + best.getNumberGroups() + " groups, taking " 
-            +  best.getDuration() + "\n ticks." + " Fitness score: " + best.fitnessScore + 
+            +  best.getDuration() + "\n ticks." + " Fitness score: " + best.fitnessScore + bestShownFlag + 
             (worst != null ? "\n    Worst simulation has " + worst.getNumberGroups() + " groups, taking " 
-            +  worst.getDuration() + "\n ticks." + "Fitness score: " +  worst.fitnessScore : "") + //arterial blockage inducing icl
+            +  worst.getDuration() + "\n ticks." + " Fitness score: " +  worst.fitnessScore + worstShownFlag : "") + //arterial blockage inducing icl
             "\n    Static generations: " + stats + "\n\n       Time elapsed: " +
             String.format("%02d:%02d.%03d",
                 timeElapsed / 60000000000L,
@@ -615,21 +614,23 @@ public class SimulationControls extends JPanel {
         parameters.NUMBER_SIMULATIONS = 500;
         parameters.plane =
             new Plane(20, 6, 14, 6, new int[]{3, 3}, new int[]{0, 7});
-        parameters.MAX_GROUPS = 4;
+        parameters.MAX_GROUPS = 6;
         parameters.PROBABILITY_DISABLED = 0.03;
         parameters.PROBABILITY_FAMILIES = 0.20;
         parameters.PROBABILITY_OLD = 0.10;
         parameters.PROBABILITY_CHILDREN = 0.10;
         parameters.PROBABILITY_BAGS = 0.80;
-        parameters.QUICKNESS = 0.5;
-        parameters.CLUSTERING = 0.5;
+        parameters.QUICKNESS = 1.0;
+        parameters.CLUSTERING = 0.3;
         parameters.ORDERLINESS = 0.5;
         parameters.ELITISM = 0.03;
         parameters.TOURNAMENT_SIZE = 3;
         parameters.SELECTION_POOL = 0.5;
         parameters.MUTATION = 0.2;
         parameters.NEW_SIMULATIONS = 0.3;
-        parameters.SPLIT_PENALTY = 700;
+        parameters.SPLIT_PENALTY = 30;
+
+        
         parameters.PAUSED = false;
         parameters.WORSTFIND = false;
 

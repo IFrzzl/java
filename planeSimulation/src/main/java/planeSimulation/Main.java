@@ -105,12 +105,20 @@ public class Main {
             parameters.MUTATION = Math.min(0.15, Math.max(0.1, 0.05*staticGenerations));
             if (i>10 && staticGenerations == 0){parameters.ELITISM += 0.01;} else {parameters.ELITISM = 0.03;}
 
-            simulationWindow.refreshPlaneView(w.getBoardingInts());
+            // pick best and worst
+            Simulation worst = findQuickest(allSimulations)[allSimulations.length-1];
+
+            // show worst if requested, otherwise show best
+            if (parameters.WORSTFIND) {
+                simulationWindow.refreshPlaneView(worst.getBoardingInts());
+            } else {
+                simulationWindow.refreshPlaneView(w.getBoardingInts());
+            }
+
 /*             try {Thread.sleep(0);} catch (Exception e){} */
             System.out.println("Generation " + i + " complete. Current winning time: " + w.getDuration() + ". Static gens: " + staticGenerations + ". New sims: " + parameters.NEW_SIMULATIONS + ". Mutation rate: " + parameters.MUTATION);
             System.out.println("Simulation random penalty: " + w.randomPenalty);
             System.out.println(parameters.MAX_GROUPS + "");
-            Simulation worst = findQuickest(allSimulations)[allSimulations.length-1];
             simulationWindow.simulationControls.updateGeneration(i, w, worst, staticGenerations, startTime);
             simulationWindow.simulationControls.refreshGAControls(); // sliders go brrr
 
