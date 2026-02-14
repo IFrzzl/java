@@ -187,7 +187,6 @@ private void GUI() {
     JMenuItem reverse = new JMenuItem("Back to Front");
     JMenuItem windowSeat = new JMenuItem("Window-Seat");
     JMenuItem randomButton = new JMenuItem("Random");  
-    JMenuItem optimal = new JMenuItem("Optimal");
     Simulation sacrifice = new Simulation(6);
     blocks.addActionListener(e -> {
         int[] boardingInts = new int[parameters.plane.getCapacity()];
@@ -244,9 +243,10 @@ private void GUI() {
         simulationControls.updateGeneration(0, sacrifice, null, 0, System.nanoTime());
     });
     randomButton.addActionListener(e -> {
-        refreshPlaneView(sacrifice.getBoardingInts());
-        sacrifice.simulateBoardingTime();
-        simulationControls.updateGeneration(0, sacrifice, null, 0, System.nanoTime());
+        Simulation chicken = new Simulation(6);
+        refreshPlaneView(chicken.getBoardingInts());
+        chicken.simulateBoardingTime();
+        simulationControls.updateGeneration(0, chicken, null, 0, System.nanoTime());
     });
     // TO DO: WRITE WINDOW AISLE AND STEFFEN BOADING METHOD
 
@@ -255,7 +255,6 @@ private void GUI() {
     fileMenu.add(blocks);
     fileMenu.add(reverse);
     fileMenu.add(randomButton);
-    fileMenu.add(optimal);
     JMenuItem exitItem = new JMenuItem("Exit");
     exitItem.addActionListener(e -> System.exit(0));
     fileMenu.add(exitItem);

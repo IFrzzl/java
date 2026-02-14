@@ -41,7 +41,6 @@ public class SimulationControls extends JPanel {
             JSlider slider;
             JLabel reading;
             JPanel panel;
-            JLabel label;
 
             Slider(String l, double d, int min, int max, Boolean defaultListener, Boolean defaultLabels){
                 JSlider slider = new JSlider(JSlider.HORIZONTAL, min, max, (int) d);
@@ -49,7 +48,7 @@ public class SimulationControls extends JPanel {
                 JLabel label = new JLabel(l + " ");
                 JPanel panel = new JPanel(gbl);
 
-                if (defaultListener){
+                if (defaultListener){ // default that can be superceded 
                     slider.addChangeListener(e -> {
                         reading.setText("" + slider.getValue());
                     });
@@ -59,9 +58,7 @@ public class SimulationControls extends JPanel {
                     slider.setPaintLabels(true);
                 }
 
-
                 GridBagConstraints gbc = new GridBagConstraints();
-
                 gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0.0; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.anchor = GridBagConstraints.WEST;
                 panel.add(label, gbc);
                 gbc.gridx = 1; gbc.weightx = 1.0; gbc.anchor = GridBagConstraints.CENTER;
@@ -77,8 +74,6 @@ public class SimulationControls extends JPanel {
                 this.slider = slider;
                 this.reading = reading;
                 this.panel = panel;
-                this.label = label;
-
             }
 
             void setLabels(String[] labels){
@@ -86,10 +81,13 @@ public class SimulationControls extends JPanel {
                 // calculate label positions
                 int min = slider.getMinimum();
                 int max = slider.getMaximum();
-                labelTable.put(min, new JLabel(labels[0]));
-                labelTable.put(max, new JLabel(labels[labels.length - 1]));
+                JLabel minS =  new JLabel(labels[0]); minS.setForeground(Color.WHITE);
+                JLabel maxS =  new JLabel(labels[labels.length-1]); maxS.setForeground(Color.WHITE);
+                labelTable.put(min,minS);
+                labelTable.put(max,maxS);
                 for (int i = 0; i < labels.length - 2; i++){
-                    labelTable.put(min + (i+1)*((max - min)/(labels.length - 2)), new JLabel(labels[i+1]));
+                    JLabel newS = new JLabel(labels[i+1]); newS.setForeground(Color.WHITE);
+                    labelTable.put(min + (i+1)*((max - min)/(labels.length - 2)), newS);
                 }
                 slider.setLabelTable(labelTable);
                 slider.setMajorTickSpacing((max-min)/(labels.length - 2));
@@ -115,7 +113,7 @@ public class SimulationControls extends JPanel {
         JPanel mainInfo = new JPanel(new GridLayout(5, 1));
 
         Slider speed = new Slider("Speed", 50, 0, 100, false, false);
-        speed.setLabels(new String[]{"0.1x", "1x", "Max"});
+        speed.setLabels(new String[]{"0.1x", "1x", "Max", "Max"});
         speed.slider.addChangeListener(e -> {
             parameters.delay = (100-speed.slider.getValue()) * 0.01;
             speed.reading.setText("" + speed.slider.getValue());
@@ -138,7 +136,7 @@ public class SimulationControls extends JPanel {
 
         // Number of Generations slider
 
-        Slider generations = new Slider("generations", parameters.NUMBER_GENERATIONS, 200, 10000, false, true);
+        Slider generations = new Slider("generations", parameters.NUMBER_GENERATIONS, 200, 2000, false, true);
         generations.slider.addChangeListener(e -> {
             generations.reading.setText("" + generations.slider.getValue());
             if (!parameters.STARTED && !generations.slider.getValueIsAdjusting()){
@@ -146,7 +144,7 @@ public class SimulationControls extends JPanel {
             }
         });
 
-        Slider simulations = new Slider("sims/gen", parameters.NUMBER_SIMULATIONS, 100, 5000, false, false);
+        Slider simulations = new Slider("sims/gen", parameters.NUMBER_SIMULATIONS, 100, 1000, false, false);
         simulations.slider.addChangeListener(e -> {
             simulations.reading.setText("" + simulations.slider.getValue());
             if (!parameters.STARTED && !simulations.slider.getValueIsAdjusting()){

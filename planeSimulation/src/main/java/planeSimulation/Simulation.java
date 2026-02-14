@@ -142,8 +142,9 @@ public class Simulation {
                 + 10*parameters.ORDERLINESS * (DoubleStream.of(this.avgDistance).sum() + DoubleStream.of(this.sdDistance).sum()));
             return this.fitnessScore;
         }
-        eventsQueue.add(new Event(EventTypes.WALK, 0, first, 0)); // first passenger starts walking at time 0
 
+
+        eventsQueue.add(new Event(EventTypes.WALK, 0, first, 0)); // first passenger starts walking at time 0
         while (!eventsQueue.isEmpty()) {
 
             Event currentEvent = eventsQueue.poll();
@@ -154,19 +155,19 @@ public class Simulation {
             switch (currentEvent.getType()) {
                 case SITTING:
                     time += parameters.allPassengers[passenger].getSittingSpeed();
-                    aisle.remove(position);
+                    aisle.remove(position); // remove passenger from aisle
                     break;
                 case WALK:
-                    if (position >= parameters.allPassengers[passenger].getSeat().getRow()) {
+                    if (position >= parameters.allPassengers[passenger].getSeat().getRow()) { // passenger has reached their row, add stowing event
                         eventsQueue.add(new Event(EventTypes.SITTING, time + parameters.allPassengers[passenger].getStowingSpeed(), passenger, position));
                     } else if (aisle.freeSpace(position)) {
-                        aisle.advance(position);
+                        aisle.advance(position); // move passenger forward in aisle
                         eventsQueue.add(new Event(EventTypes.WALK, time + parameters.allPassengers[passenger].getWalkingSpeed(), passenger, position + 1));
                     } else {
                         if (status == SeatStatus.BUSINESS || status == SeatStatus.BUSINESS_EXIT) {
-                            this.fitnessScore += 50; // we love capitalism
+                            this.fitnessScore += 50; // prioritse business passengers boarding first
                         }
-                        eventsQueue.add(new Event(EventTypes.WALK, time + 2, passenger, position)); // wait two ticks and try again
+                        eventsQueue.add(new Event(EventTypes.WALK, time + 2, passenger, position)); // wait two ticks before retrying
                     }
                     break;
             }
@@ -174,7 +175,7 @@ public class Simulation {
             if (!boardingQueue.isEmpty()) {
                 Integer firstPassenger = boardingQueue.peek();
                 if (firstPassenger != null){
-                    if (aisle.push(firstPassenger) != -1){
+                    if (aisle.push(firstPassenger) != -1){ // if there is space to push the next passenger onto the aisle, do it and add their first walking event
                         boardingQueue.poll();
                         eventsQueue.add(new Event(EventTypes.WALK, time + 2, firstPassenger, 0));
                     }

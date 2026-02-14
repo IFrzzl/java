@@ -9,16 +9,20 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 public class Main {
+
+    // multithreading code from StackOverflow
     private static final int WORKER_THREADS = Math.max(1, Runtime.getRuntime().availableProcessors() - 1);
     private static final AtomicInteger THREAD_COUNTER = new AtomicInteger(1);
     public static ExecutorService executor = Executors.newFixedThreadPool(WORKER_THREADS, r -> {
         Thread t = new Thread(r);
         t.setDaemon(true);
-        // stop my desktop env crashing D: :D
+        // daemon - low priority background thread
         try { t.setPriority(Math.max(Thread.MIN_PRIORITY, Thread.currentThread().getPriority() - 1)); } catch (Exception e) {}
-        t.setName("plane simulation :3" + THREAD_COUNTER.getAndIncrement());
+        t.setName("plane simulation"+ THREAD_COUNTER.getAndIncrement());
         return t;
     });
+
+
     private static Simulation[] allSimulations;
     public static SimulationWindow simulationWindow;
 
@@ -309,7 +313,8 @@ public class Main {
         for (int i = 0; i < parameters.TOURNAMENT_SIZE; i++) {
             Simulation candidate = simulations[parameters.random.nextInt(simulations.length)];
             if (best == null || candidate.getFitness() < best.getFitness()) {
-                best = candidate;
+                best = candidate; 
+                // sorting for best Fitness among a group of randomly selected simulaitons
             }
         }
         return best;
@@ -320,40 +325,24 @@ public class Main {
         Simulation s2 = selection(simulations);
         int length = parameters.allPassengers.length;
 
-        int groupsNum = s1.getNumberGroups();
-        if (parameters.random.nextDouble()>0.5){
-            groupsNum = s2.getNumberGroups();
-        }
+        // pick number of groups from one of the parents
+        int groupsNum = (parameters.random.nextDouble() > 0.5) ? s2.getNumberGroups() : s1.getNumberGroups();
         Simulation child = new Simulation(groupsNum);
         int[] childGroups = new int[length];
 
-        int index = 0;
-        while(length-index >0 ){
-            int blockSize = 0;
-            if (length-index <= 4){
-                blockSize = length-index;
-            } else {
-            blockSize = parameters.random.nextInt(4, Math.min(8, length-index));
-            }
-            Simulation parent = s1;
-            if (parameters.random.nextDouble()>0.5) {
-                parent = s2;
-            }
-            for (int i = index; i<index+blockSize; i++){
-                childGroups[i] = parent.getBoardingInts()[i];
-            }
+        // copy alternating random-sized blocks from parents into the child
+        for (int index = 0; index < length; ) {
+            int remaining = length - index;
+            // controlling the block size
+            int blockSize = (remaining <= 4) ? remaining : parameters.random.nextInt(4, Math.min(8, remaining));
+            int[] parentArr = (parameters.random.nextDouble() > 0.5) ? s2.getBoardingInts() : s1.getBoardingInts();
+            System.arraycopy(parentArr, index, childGroups, index, blockSize);
             index += blockSize;
-
         }
-        child.setBoardingInts(childGroups);
-        // make sure group labels are valid for this child (parent labels might be out of range)
-        child.sanitizeGroups();
-        // repair family splits rather than returning null — keeps evolution running smoothly
 
+        child.setBoardingInts(childGroups);
         return child;
     }
-
-    // cloneSimulation removed — cloning now inlined where used (simpler flow)
 
     static Simulation[] findQuickest(Simulation[] simulations) {
         Simulation[] sorted = Arrays.copyOf(simulations, simulations.length);

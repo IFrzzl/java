@@ -15,8 +15,8 @@ public class parameters {
     // priorities
 
     public static double QUICKNESS = 1.0;
-    public static double ORDERLINESS = 0.3;
-    public static double CLUSTERING = 0.3;
+    public static double ORDERLINESS = 0.1;
+    public static double CLUSTERING = 0.5;
     public static boolean WORSTFIND = false;
 
     //boarding constants (not changing these)
